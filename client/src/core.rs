@@ -8,7 +8,11 @@ use bevy::{
 
 use self::{
     event::GameEvent,
-    state::{state_mutation, GameState, PlayingPiece},
+    state::{
+        game_event_handler::state_mutation,
+        side_effects::{side_effect_handler, SideEffect},
+        GameState, PlayingPiece,
+    },
 };
 
 pub(crate) mod colours;
@@ -33,8 +37,9 @@ impl Plugin for CorePlugin {
             .init_resource::<GameState>()
             .init_resource::<PlayingPiece>()
             .add_event::<GameEvent>()
+            .add_event::<SideEffect>()
             .add_systems(Startup, (spawn_camera, load_level))
-            .add_systems(Update, state_mutation);
+            .add_systems(Update, (state_mutation, side_effect_handler));
     }
 }
 

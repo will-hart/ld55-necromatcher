@@ -1,20 +1,15 @@
-use bevy::{
-    ecs::{event::EventReader, system::ResMut},
-    prelude::Resource,
-};
+use bevy::prelude::Resource;
 
 use rand::{thread_rng, RngCore, SeedableRng};
 use rand_chacha::ChaCha20Rng;
 
-use crate::core::{
-    state::event_handler::StateEventHandler,
-    utils::{idx_to_tile, tile_to_idx},
-};
+use crate::core::utils::{idx_to_tile, tile_to_idx};
 
 use super::{event::GameEvent, COLS, ROWS};
 
-mod event_handler;
+pub mod game_event_handler;
 mod level_loader;
+pub mod side_effects;
 
 #[derive(Default, Resource)]
 pub struct PlayingPiece(pub PieceType);
@@ -276,13 +271,6 @@ impl GameState {
 pub enum Match {
     Horizontal { start_idx: usize, length: usize },
     Vertical { start_idx: usize, length: usize },
-}
-
-/// A system that listens for [GameEvent]s and uses them to mutate the state
-pub fn state_mutation(mut state: ResMut<GameState>, mut events: EventReader<GameEvent>) {
-    for event in events.read() {
-        let _ = state.apply_event(*event);
-    }
 }
 
 #[cfg(test)]
