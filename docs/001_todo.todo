@@ -19,3 +19,8 @@ Core functionality:
 Infra:
   ✔ CI workflows  (untested) @done(24-04-13 12:15)
   - Come up with a name
+
+Nice to have:
+  - Chained animation targets, so we can do e.g. pop in and then out
+  - Animation easing
+  - particles on removal

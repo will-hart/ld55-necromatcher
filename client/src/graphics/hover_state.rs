@@ -1,38 +1,40 @@
-use bevy::log::trace;
+use bevy::prelude::*;
 
-const INVALID_HOVER_STATE: usize = usize::MAX;
-const ANIMATION_SPEED: f32 = 20.0;
-const MAX_OFFSET: f32 = 1.3;
+use crate::{
+    core::utils::{tile_to_idx, world_to_tile},
+    input::CursorWorldCoords,
+};
 
-#[derive(Debug, Clone, Copy)]
-pub struct HoverState {
-    pub scale: f32,
-    idx: usize,
-    direction_is_out: bool,
+use super::piece_visualisation::{DespawnItem, GamePieceVisualisation};
+
+pub const DEFAULT_ANIMATION_SPEED: f32 = 20.0;
+
+#[derive(Debug, Component)]
+pub struct AnimationState {
+    current: f32,
+    speed: f32,
+    target: f32,
 }
 
-impl PartialEq for HoverState {
-    fn eq(&self, other: &Self) -> bool {
-        self.idx == other.idx
-    }
-}
+#[derive(Component)]
+pub struct Hovered;
 
-impl Default for HoverState {
+impl Default for AnimationState {
     fn default() -> Self {
         Self {
-            idx: INVALID_HOVER_STATE,
-            scale: 1.,
-            direction_is_out: false,
+            current: 0.5,
+            target: 1.0,
+            speed: DEFAULT_ANIMATION_SPEED,
         }
     }
 }
 
-impl HoverState {
-    pub fn new(idx: usize) -> Self {
+impl AnimationState {
+    pub fn new(current: f32, target: f32, speed: f32) -> Self {
         Self {
-            idx,
-            scale: 1.,
-            direction_is_out: true,
+            current,
+            speed,
+            target,
         }
     }
 
@@ -42,106 +44,71 @@ impl HoverState {
             return;
         }
 
-        let sign = if self.direction_is_out { 1. } else { -1. };
-        self.scale = (self.scale + dt * sign * ANIMATION_SPEED).clamp(0., MAX_OFFSET);
+        let sign = if self.target > self.current { 1. } else { -1. };
+        self.current = (self.current + dt * sign * self.speed).clamp(0., self.target);
     }
 
     /// Is the animation done and can be removed?
     /// Requires - not empty, is moving inwards, and the offset is "close to 0"
     pub fn is_done(&self) -> bool {
-        !self.is_empty() && !self.direction_is_out && self.scale < 0.001
+        (self.current - self.target).abs() < 0.001
     }
 
-    pub fn is_empty(&self) -> bool {
-        self.idx == INVALID_HOVER_STATE
+    /// Sets the animation target value,  automatically inferring the direction
+    pub fn set_target(&mut self, target: f32) {
+        self.target = target;
+    }
+
+    /// Gets the current value
+    pub fn value(&self) -> f32 {
+        self.current
     }
 }
 
-/// Hover state works by storing
-#[derive(Debug, Default)]
-pub struct HoverStateContainer {
-    prev: Vec<HoverState>,
-    current: HoverState,
+pub fn update_animations(time: Res<Time>, mut animations: Query<&mut AnimationState>) {
+    let dt = time.delta_seconds();
+
+    for mut animation in animations.iter_mut() {
+        animation.update(dt);
+    }
 }
 
-impl HoverStateContainer {
-    pub fn update(&mut self, tile_idx: usize, dt: f32) {
-        if self.current.is_done() {
-            // unlikely, because these shouldn't be animating in, but just in case we get stuck somehow
-            self.current.direction_is_out = false;
-            self.current = HoverState::default();
+pub fn update_hover_state(
+    mut commands: Commands,
+    cursor_coords: Res<CursorWorldCoords>,
+    mut animations: Query<
+        (Entity, &mut AnimationState, &GamePieceVisualisation),
+        (Without<DespawnItem>, Without<Hovered>),
+    >,
+    mut hovered_animations: Query<
+        (Entity, &mut AnimationState, &GamePieceVisualisation),
+        (Without<DespawnItem>, With<Hovered>),
+    >,
+) {
+    let (x, y) = world_to_tile(cursor_coords.0).unwrap_or((usize::MAX, usize::MAX));
+    let tile_idx = tile_to_idx(x, y);
+
+    // we now need to update the current hovered item. The options here are:
+    // 1) something is hovered and we are either:
+    //     a) still hovering (nothing to do)
+    //     b) off the map
+    //     c) on another item
+    // 2) nothing could be hovered, and we are
+    //     a) on a new item, or
+    //     b) still not on an item (nothing to do here)
+
+    // unhover if the tile_idx is different
+    for (entity, mut state, piece) in hovered_animations.iter_mut() {
+        if piece.idx != tile_idx {
+            commands.entity(entity).remove::<Hovered>();
+            state.set_target(1.0);
         }
-
-        // now update all the states
-        self.current.update(dt);
-        for state in self.prev.iter_mut() {
-            state.update(dt);
-        }
-
-        // we now need to update the current hovered item. The options here are:
-        // 1) something is hovered and we are either:
-        //     a) still hovering (nothing to do)
-        //     b) off the map
-        //     c) on another item
-        // 2) nothing could be hovered, and we are
-        //     a) on a new item, or
-        //     b) still not on an item (nothing to do here)
-        if self.current.is_empty() {
-            if tile_idx != INVALID_HOVER_STATE {
-                // this is 2a, just store the new hovered tile
-                trace!(
-                    "Previously no hovered tile, now hovering over tile {}",
-                    tile_idx
-                );
-                self.current = HoverState::new(tile_idx);
-            }
-        } else {
-            // handling case 1 here.
-            if tile_idx == self.current.idx {
-                // 1a, nothing to do
-            } else {
-                // for both 1b and 1c, we're replacing the current with something. Store it in prev
-                // here unless somehow its already there.
-                if !self.prev.contains(&self.current) {
-                    self.current.direction_is_out = false;
-                    self.prev.push(self.current);
-                }
-
-                if tile_idx == INVALID_HOVER_STATE {
-                    // 1b, we're off the map. We need to make current empty
-                    trace!(
-                        "Previously hovered tile {}, now hovering over nothing",
-                        self.current.idx
-                    );
-                    self.current = HoverState::default();
-                } else {
-                    // 1c, we're on another item, save it to current
-                    trace!(
-                        "Previously hovered tile {}, now hovering over tile {}",
-                        self.current.idx,
-                        tile_idx
-                    );
-                    self.current = HoverState::new(tile_idx);
-                }
-            }
-        }
-
-        // remove any previous state thats done
-        self.prev.retain(|s| !s.is_done());
     }
 
-    /// Gets a hover state for the given tile x and y, returning None if there isn't a relevant state.
-    /// This just uses a vec. Honestly its possibly not the most efficient given we'll be looping over
-    /// the vec quite a lot but IDC.
-    pub fn get_hover_state(&self, tile_idx: usize) -> Option<&HoverState> {
-        if tile_idx == INVALID_HOVER_STATE {
-            return None;
-        }
-
-        if self.current.idx == tile_idx {
-            Some(&self.current)
-        } else {
-            self.prev.iter().find(|hs| hs.idx == tile_idx)
+    for (entity, mut state, piece) in animations.iter_mut() {
+        if piece.idx == tile_idx {
+            commands.entity(entity).insert(Hovered);
+            state.set_target(1.3);
         }
     }
 }

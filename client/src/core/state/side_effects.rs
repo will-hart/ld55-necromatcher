@@ -2,7 +2,10 @@ use bevy::prelude::*;
 
 use crate::{
     core::state::game_event_handler::DEFAULT_DESPAWN_DELAY,
-    graphics::piece_visualisation::{DespawnItem, GamePieceVisualisation},
+    graphics::{
+        hover_state::{AnimationState, DEFAULT_ANIMATION_SPEED},
+        piece_visualisation::{DespawnItem, GamePieceVisualisation},
+    },
 };
 
 use super::{GameState, PieceType};
@@ -31,6 +34,7 @@ pub fn side_effect_handler(
     time: Res<Time>,
     state: Res<GameState>,
     piece_query: Query<(Entity, &GamePieceVisualisation)>,
+    mut animations: Query<&mut AnimationState, With<GamePieceVisualisation>>,
 ) {
     for side_effect in events.read() {
         info!("Handling side effect: {side_effect:?}");
@@ -41,24 +45,29 @@ pub fn side_effect_handler(
                 piece_type,
                 is_player_owned,
                 also_destroy,
-            } => {
-                let mut item = commands.spawn(GamePieceVisualisation {
-                    idx: *idx,
-                    piece_type: *piece_type,
-                    is_player_owned: *is_player_owned,
-                });
+            } => spawn_game_piece(
+                &mut commands,
+                *idx,
+                *piece_type,
+                *is_player_owned,
                 if *also_destroy {
-                    item.insert(DespawnItem {
-                        despawn_time: time.elapsed_seconds() + DEFAULT_DESPAWN_DELAY,
-                    });
-                }
-            }
+                    Some(time.elapsed_seconds() + DEFAULT_DESPAWN_DELAY)
+                } else {
+                    None
+                },
+            ),
             SideEffect::DespawnAtTile { idx, delay } => {
+                // maybe a bit inefficient but again idc
                 for (entity, piece) in piece_query.iter() {
                     if piece.idx == *idx {
                         commands.entity(entity).insert(DespawnItem {
                             despawn_time: time.elapsed_seconds() + delay,
                         });
+
+                        if let Ok(mut anim_state) = animations.get_mut(entity) {
+                            anim_state.set_target(0.2);
+                        }
+
                         break;
                     }
                 }
@@ -72,18 +81,10 @@ pub fn side_effect_handler(
                     match tile.piece {
                         super::Piece::Empty => {}
                         super::Piece::Player0(pt) => {
-                            commands.spawn(GamePieceVisualisation {
-                                idx: tile.idx(),
-                                piece_type: pt,
-                                is_player_owned: true,
-                            });
+                            spawn_game_piece(&mut commands, tile.idx(), pt, true, None);
                         }
                         super::Piece::Player1(pt) => {
-                            commands.spawn(GamePieceVisualisation {
-                                idx: tile.idx(),
-                                piece_type: pt,
-                                is_player_owned: false,
-                            });
+                            spawn_game_piece(&mut commands, tile.idx(), pt, false, None);
                         }
                     }
                 }
@@ -92,5 +93,29 @@ pub fn side_effect_handler(
                 warn!("Did the player win? {player_won}, maybe do something about this?")
             }
         }
+    }
+}
+
+fn spawn_game_piece(
+    commands: &mut Commands,
+    idx: usize,
+    piece_type: PieceType,
+    is_player_owned: bool,
+    despawn_at: Option<f32>,
+) {
+    let mut ent = commands.spawn(GamePieceVisualisation {
+        idx,
+        piece_type,
+        is_player_owned,
+    });
+
+    if let Some(despawn_time) = despawn_at {
+        ent.insert((
+            DespawnItem { despawn_time },
+            // TODO: allow chained targets
+            AnimationState::new(1.0, 0.3, DEFAULT_ANIMATION_SPEED / 100.),
+        ));
+    } else {
+        ent.insert(AnimationState::default());
     }
 }

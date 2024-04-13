@@ -1,4 +1,4 @@
-use bevy::{ecs::entity, prelude::*, window::PrimaryWindow};
+use bevy::{prelude::*, window::PrimaryWindow};
 use bevy_vector_shapes::{
     painter::ShapePainter,
     shapes::{DiscPainter, RectPainter, TrianglePainter},
@@ -11,19 +11,19 @@ use crate::{
             DEFAULT_GRID_BORDER, DEFAULT_GRID_HOVER_BORDER_INVALID,
             DEFAULT_GRID_HOVER_BORDER_VALID, PLAYER_0_COLOUR, PLAYER_1_COLOUR,
         },
-        state::{GameState, Piece, PieceType, PlayingPiece},
-        utils::{idx_to_tile, tile_coords, tile_to_idx, world_to_tile},
+        state::{GameState, PieceType, PlayingPiece},
+        utils::{idx_to_tile, tile_coords, world_to_tile},
         COLS, GRID_SIZE, ROWS,
     },
     input::CursorWorldCoords,
 };
 
 use self::{
-    hover_state::HoverStateContainer,
+    hover_state::AnimationState,
     piece_visualisation::{DespawnItem, GamePieceVisualisation},
 };
 
-mod hover_state;
+pub mod hover_state;
 pub mod piece_visualisation;
 
 pub const SHAPE_SIZE: f32 = GRID_SIZE as f32 / 8.;
@@ -34,7 +34,14 @@ impl Plugin for GraphicsPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(Shape2dPlugin::default()).add_systems(
             Update,
-            (draw_grid, draw_pieces, draw_current_piece, despawn_system),
+            (
+                draw_grid,
+                draw_pieces,
+                draw_current_piece,
+                despawn_system,
+                hover_state::update_animations,
+                hover_state::update_hover_state,
+            ),
         );
     }
 }
@@ -98,23 +105,14 @@ fn draw_current_piece(
 
 fn draw_pieces(
     mut painter: ShapePainter,
-    // state: Res<GameState>,
-    // cursor_coords: Res<CursorWorldCoords>,
-    // time: Res<Time>,
-    // mut hover: Local<HoverStateContainer>,
-    pieces: Query<&GamePieceVisualisation>,
+    pieces: Query<(&GamePieceVisualisation, &AnimationState)>,
 ) {
     let pos = painter.transform.clone();
     painter.thickness = 1.;
     painter.hollow = true;
     painter.color = PLAYER_0_COLOUR;
 
-    // update our hover state, which offsets the pieces based on when our mouse is over them,
-    // then animates them back
-    // let (xsel, ysel) = world_to_tile(cursor_coords.0).unwrap_or((usize::MAX, usize::MAX));
-    // hover.update(tile_to_idx(xsel, ysel), time.delta_seconds());
-
-    for piece in pieces.iter() {
+    for (piece, animation) in pieces.iter() {
         let (tile_x, tile_y) = idx_to_tile(piece.idx);
         let world_coords = tile_coords(tile_x, tile_y);
         painter.translate(world_coords.min.extend(0.5));
@@ -125,7 +123,7 @@ fn draw_pieces(
             PLAYER_1_COLOUR
         };
 
-        draw_single_piece(&mut painter, &piece.piece_type, 1.);
+        draw_single_piece(&mut painter, &piece.piece_type, animation.value());
 
         painter.transform = pos;
     }
