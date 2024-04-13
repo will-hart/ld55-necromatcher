@@ -1,6 +1,9 @@
 use bevy::prelude::*;
 
-use crate::graphics::piece_visualisation::{DespawnItem, GamePieceVisualisation};
+use crate::{
+    core::state::game_event_handler::DEFAULT_DESPAWN_DELAY,
+    graphics::piece_visualisation::{DespawnItem, GamePieceVisualisation},
+};
 
 use super::{GameState, PieceType};
 
@@ -12,6 +15,7 @@ pub enum SideEffect {
         idx: usize,
         piece_type: PieceType,
         is_player_owned: bool,
+        also_destroy: bool,
     },
     /// Despawn the visual entity at the given tile after a delay
     DespawnAtTile { idx: usize, delay: f32 },
@@ -36,12 +40,18 @@ pub fn side_effect_handler(
                 idx,
                 piece_type,
                 is_player_owned,
+                also_destroy,
             } => {
-                commands.spawn(GamePieceVisualisation {
+                let mut item = commands.spawn(GamePieceVisualisation {
                     idx: *idx,
                     piece_type: *piece_type,
                     is_player_owned: *is_player_owned,
                 });
+                if *also_destroy {
+                    item.insert(DespawnItem {
+                        despawn_time: time.elapsed_seconds() + DEFAULT_DESPAWN_DELAY,
+                    });
+                }
             }
             SideEffect::DespawnAtTile { idx, delay } => {
                 for (entity, piece) in piece_query.iter() {

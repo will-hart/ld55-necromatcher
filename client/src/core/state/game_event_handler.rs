@@ -86,6 +86,7 @@ impl StateEventHandler for GameState {
                         idx: placed_idx,
                         piece_type: *piece_type,
                         is_player_owned: true,
+                        also_destroy: false,
                     }];
 
                     let matches = self.get_matches();
@@ -99,10 +100,22 @@ impl StateEventHandler for GameState {
                                 .collect::<Vec<_>>(),
                         };
                         for idx in idx_range {
-                            side_effects.push(SideEffect::DespawnAtTile {
-                                idx,
-                                delay: DEFAULT_DESPAWN_DELAY,
-                            });
+                            if idx == placed_idx {
+                                // replace the first element
+                                side_effects[0] = SideEffect::SpawnAtTile {
+                                    idx: placed_idx,
+                                    piece_type: *piece_type,
+                                    is_player_owned: true,
+                                    also_destroy: true,
+                                }
+                            } else {
+                                // destroy other elements
+                                side_effects.push(SideEffect::DespawnAtTile {
+                                    idx,
+                                    delay: DEFAULT_DESPAWN_DELAY,
+                                });
+                            }
+
                             self.tiles[idx].piece = Piece::Empty;
                         }
                     }
