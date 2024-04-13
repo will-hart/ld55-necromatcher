@@ -156,7 +156,7 @@ impl GameState {
     ///
     /// A valid piece must meet these conditions:
     ///  (a) has a tile under the cursor,
-    ///  (b) doesn't have a player piece under the cursor, and
+    ///  (b) doesn't have a piece under the cursor, and
     ///  (c) has a friendly piece in one of the neighbouring cells
     pub fn is_valid_placement_position(&self, selected_x: usize, selected_y: usize) -> bool {
         if selected_x == usize::MAX || selected_y == usize::MAX {
@@ -174,15 +174,15 @@ impl GameState {
             })
             .unwrap_or(false);
 
-        // let neighbour_contains_player_piece = self
-        //     .get_neighbours(selected_x, selected_y, PieceType::Square)
-        //     .iter()
-        //     .any(|(nx, ny)| match self.tiles[tile_to_idx(*nx, *ny)].piece {
-        //         Piece::Player0(_) => true,
-        //         _ => false,
-        //     });
+        let neighbour_contains_player_piece = self
+            .get_neighbours(selected_x, selected_y, PieceType::Square)
+            .iter()
+            .any(|(nx, ny)| match self.tiles[tile_to_idx(*nx, *ny)].piece {
+                Piece::Player0(_) => true,
+                _ => false,
+            });
 
-        selected_tile_exists && !selected_tile_is_occupied // && neighbour_contains_player_piece
+        selected_tile_exists && !selected_tile_is_occupied && neighbour_contains_player_piece
     }
 
     /// Gets neighbouring cells for this tile piece at the given x/y tile coordinate
