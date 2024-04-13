@@ -8,11 +8,11 @@ use bevy_vector_shapes::{
 use crate::{
     core::{
         colours::{
-            DEFAULT_GRID_BORDER, DEFAULT_GRID_HOVER_BORDER, DEFAULT_GRID_NEIGHBOUR_HOVER_BORDER,
-            PLAYER_0_COLOUR, PLAYER_1_COLOUR,
+            DEFAULT_GRID_BORDER, DEFAULT_GRID_HOVER_BORDER_INVALID,
+            DEFAULT_GRID_HOVER_BORDER_VALID, PLAYER_0_COLOUR, PLAYER_1_COLOUR,
         },
         state::{GameState, Piece, PieceType, PlayingPiece},
-        utils::{get_neighbours, tile_coords, tile_to_idx, world_to_tile},
+        utils::{tile_coords, tile_to_idx, world_to_tile},
         COLS, GRID_SIZE, ROWS,
     },
     input::CursorWorldCoords,
@@ -35,6 +35,7 @@ impl Plugin for GraphicsPlugin {
 
 fn draw_grid(
     cursor_coords: Res<CursorWorldCoords>,
+    state: Res<GameState>,
     playing_piece: Res<PlayingPiece>,
     mut painter: ShapePainter,
 ) {
@@ -44,16 +45,20 @@ fn draw_grid(
     painter.hollow = true;
 
     let (xsel, ysel) = world_to_tile(cursor_coords.0).unwrap_or((usize::MAX, usize::MAX));
-    let neighbours = get_neighbours(xsel, ysel, playing_piece.0);
+    let neighbours = state.get_neighbours(xsel, ysel, playing_piece.0);
+    let is_valid_placement_position =
+        state.is_valid_placement_position(xsel, ysel, playing_piece.0);
 
     for x in 0..COLS {
         for y in 0..ROWS {
             let coords = tile_coords(x, y);
 
-            if xsel == x && ysel == y {
-                painter.color = DEFAULT_GRID_HOVER_BORDER;
-            } else if neighbours.contains(&(x, y)) {
-                painter.color = DEFAULT_GRID_NEIGHBOUR_HOVER_BORDER;
+            if (xsel == x && ysel == y) || neighbours.contains(&(x, y)) {
+                painter.color = if is_valid_placement_position {
+                    DEFAULT_GRID_HOVER_BORDER_VALID
+                } else {
+                    DEFAULT_GRID_HOVER_BORDER_INVALID
+                };
             } else {
                 painter.color = DEFAULT_GRID_BORDER
             }

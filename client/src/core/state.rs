@@ -4,7 +4,7 @@ use rand_chacha::ChaCha20Rng;
 
 use crate::core::utils::{idx_to_tile, tile_to_idx};
 
-use super::{event::GameEvent, COLS};
+use super::{event::GameEvent, COLS, ROWS};
 
 #[derive(Default, Resource)]
 pub struct PlayingPiece(pub PieceType);
@@ -111,5 +111,77 @@ impl GameState {
         }
 
         Ok(())
+    }
+
+    /// Returns true if the x/y position passed is a valid location to place a player piece.
+    ///
+    /// A valid piece must meet these conditions:
+    ///  (a) has a tile under the cursor,
+    ///  (b) doesn't have a player piece under the cursor, and
+    ///  (c) has a friendly piece in one of the neighbouring cells
+    pub fn is_valid_placement_position(
+        &self,
+        selected_x: usize,
+        selected_y: usize,
+        piece_type: PieceType,
+    ) -> bool {
+        if selected_x == usize::MAX || selected_y == usize::MAX {
+            return false;
+        }
+
+        let selected_tile = self.tiles.get(tile_to_idx(selected_x, selected_y));
+
+        let selected_tile_exists = selected_tile.is_some();
+
+        let selected_tile_is_player_occupied = selected_tile
+            .map(|t| match t.piece {
+                Piece::Player0(_) => true,
+                _ => false,
+            })
+            .unwrap_or(false);
+
+        let neighbour_contains_player_piece = self
+            .get_neighbours(selected_x, selected_y, piece_type)
+            .iter()
+            .any(|(nx, ny)| match self.tiles[tile_to_idx(*nx, *ny)].piece {
+                Piece::Player0(_) => true,
+                _ => false,
+            });
+
+        selected_tile_exists && !selected_tile_is_player_occupied && neighbour_contains_player_piece
+    }
+
+    /// Gets neighbouring cells for this tile piece at the given x/y tile coordinate
+    pub fn get_neighbours(&self, x: usize, y: usize, piece_type: PieceType) -> Vec<(usize, usize)> {
+        if x == usize::MAX || y == usize::MAX {
+            return vec![];
+        }
+
+        match piece_type {
+            PieceType::Square => vec![(0isize, -1isize), (-1, 0), (1, 0), (0, 1)],
+            PieceType::Circle => vec![
+                (-1, -1),
+                (0, -1),
+                (1, -1),
+                (-1, 0),
+                (1, 0),
+                (-1, 1),
+                (0, 1),
+                (1, 1),
+            ],
+            PieceType::Triangle => vec![(-1, -1), (1, 1)],
+        }
+        .iter()
+        .filter_map(|(dx, dy)| {
+            let new_x = x.checked_add_signed(*dx).unwrap_or(COLS);
+            let new_y = y.checked_add_signed(*dy).unwrap_or(ROWS);
+
+            if new_x >= COLS || new_y >= ROWS {
+                None
+            } else {
+                Some((new_x, new_y))
+            }
+        })
+        .collect()
     }
 }

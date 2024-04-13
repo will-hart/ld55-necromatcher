@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use super::{state::PieceType, COLS, GRID_SIZE, ROWS};
+use super::{COLS, GRID_SIZE, ROWS};
 
 /// convert from tile x/y to a world coordinate
 pub fn tile_coords(x: usize, y: usize) -> Rect {
@@ -57,38 +57,4 @@ pub fn idx_to_tile(idx: usize) -> (usize, usize) {
 
         (x, y)
     }
-}
-
-/// Gets neighbouring cells for this tile piece at the given x/y tile coordinate
-pub fn get_neighbours(x: usize, y: usize, piece_type: PieceType) -> Vec<(usize, usize)> {
-    if x == usize::MAX || y == usize::MAX {
-        return vec![];
-    }
-
-    match piece_type {
-        PieceType::Square => vec![(0isize, -1isize), (-1, 0), (1, 0), (0, 1)],
-        PieceType::Circle => vec![
-            (-1, -1),
-            (0, -1),
-            (1, -1),
-            (-1, 0),
-            (1, 0),
-            (-1, 1),
-            (0, 1),
-            (1, 1),
-        ],
-        PieceType::Triangle => vec![(0, -1), (-1, -1), (1, -1)],
-    }
-    .iter()
-    .filter_map(|(dx, dy)| {
-        let new_x = x.checked_add_signed(*dx).unwrap_or(COLS);
-        let new_y = y.checked_add_signed(*dy).unwrap_or(ROWS);
-
-        if new_x >= COLS || new_y >= ROWS {
-            None
-        } else {
-            Some((new_x, new_y))
-        }
-    })
-    .collect()
 }
