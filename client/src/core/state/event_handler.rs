@@ -75,6 +75,10 @@ impl StateEventHandler for GameState {
                             }
                         }
 
+                        if self.is_game_over() {
+                            warn!("Game over man");
+                        }
+
                         true
                     }
                     GameEvent::LoadLevel { level_id } => {

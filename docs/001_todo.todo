@@ -2,13 +2,16 @@ Core functionality:
   ✔ Draw grid @done(24-04-13 11:46)
   ✔ Create a state container for the current map state @done(24-04-13 16:09)
   ✔ Setup events that can be used to update the state @done(24-04-13 16:09)
+  ✔ Loading level configuration from file @done(24-04-14 01:08)
+  - Game over state
+  - Handling levels
   
   Handle placing pieces:
     ✔ Show valid placement locations @done(24-04-13 16:09)
     ✔ Send events on click when valid @done(24-04-13 16:25)
   
   Handle "combat":
-    - placing piece results in combat
+    ✔ placing piece results in combat @done(24-04-14 01:02)
     - combat results in chains of reactions
     - animate reactions piece by piece
     - placement results in "summoning" new pieces

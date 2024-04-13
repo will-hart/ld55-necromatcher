@@ -125,6 +125,13 @@ impl GameState {
         selected_tile_exists && !selected_tile_is_occupied && neighbour_contains_player_piece
     }
 
+    pub fn is_game_over(&self) -> bool {
+        !self.tiles.iter().any(|t| match t.piece {
+            Piece::Player1(_) => true,
+            _ => false,
+        })
+    }
+
     /// Gets neighbouring cells for this tile piece at the given x/y tile coordinate
     pub fn get_neighbours(&self, x: usize, y: usize, piece_type: PieceType) -> Vec<(usize, usize)> {
         if x == usize::MAX || y == usize::MAX {
