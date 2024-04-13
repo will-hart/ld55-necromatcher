@@ -14,7 +14,7 @@ use crate::core::{
     COLS,
 };
 
-use super::GameState;
+use super::{level_loader::StateLevelLoader, GameState};
 
 pub trait StateEventHandler {
     fn validate_event(&self, game_event: &mut GameEvent) -> anyhow::Result<()>;
@@ -36,6 +36,13 @@ impl StateEventHandler for GameState {
                 } else {
                     bail!("Unable to place piece - location is not valid");
                 }
+            }
+            GameEvent::LoadLevel { level_id } => {
+                if *level_id >= GameState::LEVELS.len() {
+                    bail!("Unable to load level - {level_id} is not a valid level ID");
+                }
+
+                Ok(())
             }
         }
     }
@@ -68,6 +75,10 @@ impl StateEventHandler for GameState {
                             }
                         }
 
+                        true
+                    }
+                    GameEvent::LoadLevel { level_id } => {
+                        self.load_level(*level_id);
                         true
                     }
                 } {

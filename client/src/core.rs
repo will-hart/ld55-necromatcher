@@ -33,7 +33,7 @@ impl Plugin for CorePlugin {
             .init_resource::<GameState>()
             .init_resource::<PlayingPiece>()
             .add_event::<GameEvent>()
-            .add_systems(Startup, spawn_camera)
+            .add_systems(Startup, (spawn_camera, load_level))
             .add_systems(Update, state_mutation);
     }
 }
@@ -54,4 +54,8 @@ fn spawn_camera(mut commands: Commands) {
         MainCamera,
         BloomSettings::default(),
     ));
+}
+
+fn load_level(mut events: EventWriter<GameEvent>) {
+    events.send(GameEvent::LoadLevel { level_id: 0 });
 }

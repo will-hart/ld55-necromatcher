@@ -14,6 +14,7 @@ use crate::core::{
 use super::{event::GameEvent, COLS, ROWS};
 
 mod event_handler;
+mod level_loader;
 
 #[derive(Default, Resource)]
 pub struct PlayingPiece(pub PieceType);
@@ -114,7 +115,7 @@ impl GameState {
             .unwrap_or(false);
 
         let neighbour_contains_player_piece = self
-            .get_neighbours(selected_x, selected_y, PieceType::Square)
+            .get_neighbours(selected_x, selected_y, PieceType::Circle)
             .iter()
             .any(|(nx, ny)| match self.tiles[tile_to_idx(*nx, *ny)].piece {
                 Piece::Player0(_) => true,
