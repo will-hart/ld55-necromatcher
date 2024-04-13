@@ -46,8 +46,7 @@ fn draw_grid(
 
     let (xsel, ysel) = world_to_tile(cursor_coords.0).unwrap_or((usize::MAX, usize::MAX));
     let neighbours = state.get_neighbours(xsel, ysel, playing_piece.0);
-    let is_valid_placement_position =
-        state.is_valid_placement_position(xsel, ysel, playing_piece.0);
+    let is_valid_placement_position = state.is_valid_placement_position(xsel, ysel);
 
     for x in 0..COLS {
         for y in 0..ROWS {
