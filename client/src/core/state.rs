@@ -122,6 +122,22 @@ impl GameState {
                     GameEvent::PlacePlayerPiece { x, y, piece_type } => {
                         info!("Adding player piece");
                         self.tiles[tile_to_idx(*x, *y)].piece = Piece::Player0(*piece_type);
+
+                        let matches = self.get_matches();
+                        for matched in matches {
+                            let idx_range = match matched {
+                                Match::Horizontal { start_idx, length } => {
+                                    (start_idx..start_idx + length).collect::<Vec<_>>()
+                                }
+                                Match::Vertical { start_idx, length } => (0..length)
+                                    .map(|step| start_idx + step * COLS)
+                                    .collect::<Vec<_>>(),
+                            };
+                            for idx in idx_range {
+                                self.tiles[idx].piece = Piece::Empty;
+                            }
+                        }
+
                         true
                     }
                 } {
@@ -142,12 +158,7 @@ impl GameState {
     ///  (a) has a tile under the cursor,
     ///  (b) doesn't have a player piece under the cursor, and
     ///  (c) has a friendly piece in one of the neighbouring cells
-    pub fn is_valid_placement_position(
-        &self,
-        selected_x: usize,
-        selected_y: usize,
-        // piece_type: PieceType,
-    ) -> bool {
+    pub fn is_valid_placement_position(&self, selected_x: usize, selected_y: usize) -> bool {
         if selected_x == usize::MAX || selected_y == usize::MAX {
             return false;
         }
@@ -163,15 +174,15 @@ impl GameState {
             })
             .unwrap_or(false);
 
-        let neighbour_contains_player_piece = self
-            .get_neighbours(selected_x, selected_y, PieceType::Square)
-            .iter()
-            .any(|(nx, ny)| match self.tiles[tile_to_idx(*nx, *ny)].piece {
-                Piece::Player0(_) => true,
-                _ => false,
-            });
+        // let neighbour_contains_player_piece = self
+        //     .get_neighbours(selected_x, selected_y, PieceType::Square)
+        //     .iter()
+        //     .any(|(nx, ny)| match self.tiles[tile_to_idx(*nx, *ny)].piece {
+        //         Piece::Player0(_) => true,
+        //         _ => false,
+        //     });
 
-        selected_tile_exists && !selected_tile_is_occupied && neighbour_contains_player_piece
+        selected_tile_exists && !selected_tile_is_occupied // && neighbour_contains_player_piece
     }
 
     /// Gets neighbouring cells for this tile piece at the given x/y tile coordinate
@@ -310,8 +321,7 @@ impl GameState {
 
     /// Gets any three in a row matches.
     pub fn get_matches(&self) -> Vec<Match> {
-        let mut result = [self._do_matching(true), self._do_matching(false)].concat();
-        result
+        [self._do_matching(true), self._do_matching(false)].concat()
     }
 }
 
