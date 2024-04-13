@@ -1,4 +1,9 @@
-use bevy::prelude::Resource;
+use anyhow::bail;
+use bevy::{
+    ecs::{event::EventReader, system::ResMut},
+    log::{info, warn},
+    prelude::Resource,
+};
 use rand::{thread_rng, RngCore, SeedableRng};
 use rand_chacha::ChaCha20Rng;
 
@@ -29,8 +34,11 @@ impl PieceType {
 
 #[derive(Debug, Copy, Clone)]
 pub enum Piece {
+    /// No piece at all
     Empty,
+    /// A piece owned by the player
     Player0(PieceType),
+    /// A piece owned by the computer
     Player1(PieceType),
 }
 
@@ -91,22 +99,38 @@ impl Default for GameState {
 impl GameState {
     /// Returns Ok() if the event can be applied, possibly mutates the event
     fn validate_event(&self, game_event: &mut GameEvent) -> anyhow::Result<()> {
-        Ok(())
+        match game_event {
+            GameEvent::SeedRng { seed: _seed } => Ok(()),
+            GameEvent::PlacePlayerPiece { x, y, piece_type } => {
+                if self.is_valid_placement_position(*x, *y, *piece_type) {
+                    Ok(())
+                } else {
+                    bail!("Unable to place piece - location is not valid");
+                }
+            }
+        }
     }
 
     pub fn apply_event(&mut self, mut game_event: GameEvent) -> anyhow::Result<()> {
-        if let Ok(_) = self.validate_event(&mut game_event) {
-            if match &game_event {
-                GameEvent::SeedRng { seed } => {
-                    self.rng = ChaCha20Rng::seed_from_u64(*seed);
-                    true
+        match self.validate_event(&mut game_event) {
+            Ok(_) => {
+                if match &game_event {
+                    GameEvent::SeedRng { seed } => {
+                        info!("Seeded RNG to {seed} in response to GameEvent");
+                        self.rng = ChaCha20Rng::seed_from_u64(*seed);
+                        true
+                    }
+                    GameEvent::PlacePlayerPiece { x, y, piece_type } => {
+                        info!("Adding player piece");
+                        self.tiles[tile_to_idx(*x, *y)].piece = Piece::Player0(*piece_type);
+                        true
+                    }
+                } {
+                    self.events.push(game_event)
                 }
-                GameEvent::PlacePlayerPiece { x, y, piece_type } => {
-                    self.tiles[x * COLS + y].piece = Piece::Player1(*piece_type);
-                    true
-                }
-            } {
-                self.events.push(game_event)
+            }
+            Err(e) => {
+                warn!("Unable to apply event {game_event:?}, the following error occurred during validation: {e:?}");
             }
         }
 
@@ -169,7 +193,7 @@ impl GameState {
                 (0, 1),
                 (1, 1),
             ],
-            PieceType::Triangle => vec![(-1, -1), (1, 1)],
+            PieceType::Triangle => vec![(0, -1), (0, 1)],
         }
         .iter()
         .filter_map(|(dx, dy)| {
@@ -183,5 +207,12 @@ impl GameState {
             }
         })
         .collect()
+    }
+}
+
+/// A system that listens for [GameEvent]s and uses them to mutate the state
+pub fn state_mutation(mut state: ResMut<GameState>, mut events: EventReader<GameEvent>) {
+    for event in events.read() {
+        let _ = state.apply_event(*event);
     }
 }

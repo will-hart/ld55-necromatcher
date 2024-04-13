@@ -3,7 +3,7 @@ use bevy::prelude::*;
 use super::state::PieceType;
 
 /// A game event that
-#[derive(Event)]
+#[derive(Event, Clone, Copy, Debug)]
 pub enum GameEvent {
     /// Seeds the rng so we can have repeatable games
     SeedRng { seed: u64 },

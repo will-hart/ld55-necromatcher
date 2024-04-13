@@ -1,6 +1,6 @@
 use bevy::{prelude::*, window::PrimaryWindow};
 
-use crate::core::{state::PlayingPiece, MainCamera};
+use crate::core::{event::GameEvent, state::PlayingPiece, utils::world_to_tile, MainCamera};
 pub struct InputPlugin;
 
 impl Plugin for InputPlugin {
@@ -35,10 +35,28 @@ fn track_cursor_position(
 }
 
 pub fn handle_piece_type(
+    cursor_coords: Res<CursorWorldCoords>,
     buttons: Res<ButtonInput<MouseButton>>,
+    keyboard_input: Res<ButtonInput<KeyCode>>,
     mut playing_piece: ResMut<PlayingPiece>,
+    mut state_events: EventWriter<GameEvent>,
 ) {
-    if buttons.just_pressed(MouseButton::Right) {
+    if buttons.just_pressed(MouseButton::Right) || keyboard_input.just_pressed(KeyCode::Tab) {
         playing_piece.0 = playing_piece.0.toggle();
+    }
+
+    if buttons.just_pressed(MouseButton::Left) {
+        let (x, y) = world_to_tile(cursor_coords.0).unwrap_or((usize::MAX, usize::MAX));
+        if x < usize::MAX && y < usize::MAX {
+            info!(
+                "Requested piece placement at {x}, {y} - {:?}",
+                playing_piece.0
+            );
+            state_events.send(GameEvent::PlacePlayerPiece {
+                x,
+                y,
+                piece_type: playing_piece.0,
+            });
+        }
     }
 }
