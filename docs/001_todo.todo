@@ -1,5 +1,9 @@
 Core functionality:
- ✔ Draw grid @done(24-04-13 11:46)
- - Create a state container for the current map state
- - Setup events that can be used to update the state
- - Handle placing pieces
+  ✔ Draw grid @done(24-04-13 11:46)
+  - Create a state container for the current map state
+  - Setup events that can be used to update the state
+  - Handle placing pieces
+
+Infra:
+  ✔ CI workflows  (untested) @done(24-04-13 12:15)
+  - Come up with a name
