@@ -6,6 +6,10 @@ use bevy::{
     prelude::*,
 };
 
+use self::state::GameState;
+
+pub(crate) mod state;
+
 /// Number of rows in the grid
 pub const ROWS: usize = 8;
 
@@ -20,6 +24,7 @@ pub struct CorePlugin;
 impl Plugin for CorePlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(ClearColor(Color::BLACK))
+            .init_resource::<GameState>()
             .add_systems(Startup, spawn_camera);
     }
 }
