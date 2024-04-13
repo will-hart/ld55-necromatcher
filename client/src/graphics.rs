@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{prelude::*, window::PrimaryWindow};
 use bevy_vector_shapes::{
     painter::ShapePainter,
     shapes::{DiscPainter, RectPainter, TrianglePainter},
@@ -11,7 +11,7 @@ use crate::{
             DEFAULT_GRID_BORDER, DEFAULT_GRID_HOVER_BORDER_INVALID,
             DEFAULT_GRID_HOVER_BORDER_VALID, PLAYER_0_COLOUR, PLAYER_1_COLOUR,
         },
-        state::{GameState, Piece, PieceType},
+        state::{GameState, Piece, PieceType, PlayingPiece},
         utils::{tile_coords, tile_to_idx, world_to_tile},
         COLS, GRID_SIZE, ROWS,
     },
@@ -29,7 +29,7 @@ pub struct GraphicsPlugin;
 impl Plugin for GraphicsPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(Shape2dPlugin::default())
-            .add_systems(Update, (draw_grid, draw_pieces));
+            .add_systems(Update, (draw_grid, draw_pieces, draw_current_piece));
     }
 }
 
@@ -67,6 +67,29 @@ fn draw_grid(
     }
 }
 
+fn draw_current_piece(
+    mut painter: ShapePainter,
+    current_piece: Res<PlayingPiece>,
+    window_query: Query<&Window, With<PrimaryWindow>>,
+) {
+    let pos = painter.transform.clone();
+
+    painter.thickness = 0.5;
+    painter.hollow = true;
+    painter.color = PLAYER_0_COLOUR;
+
+    let window = window_query.single();
+    painter.translate(Vec3::new(
+        -0.5 * window.width() + 2. * SHAPE_SIZE,
+        -0.5 * window.height() + 2. * SHAPE_SIZE,
+        0.0,
+    ));
+
+    draw_single_piece(&mut painter, &current_piece.0, 1.0);
+
+    painter.transform = pos;
+}
+
 fn draw_pieces(
     mut painter: ShapePainter,
     state: Res<GameState>,
@@ -74,13 +97,10 @@ fn draw_pieces(
     time: Res<Time>,
     mut hover: Local<HoverStateContainer>,
 ) {
-    let p0_colour = PLAYER_0_COLOUR;
-    let p1_colour = PLAYER_1_COLOUR;
-
     let pos = painter.transform.clone();
     painter.thickness = 1.;
     painter.hollow = true;
-    painter.color = p0_colour;
+    painter.color = PLAYER_0_COLOUR;
 
     // update our hover state, which offsets the pieces based on when our mouse is over them,
     // then animates them back
@@ -101,11 +121,11 @@ fn draw_pieces(
                 // nop
             }
             Piece::Player0(piece_type) => {
-                painter.color = p0_colour;
+                painter.color = PLAYER_0_COLOUR;
                 draw_single_piece(&mut painter, piece_type, icon_scale);
             }
             Piece::Player1(piece_type) => {
-                painter.color = p1_colour;
+                painter.color = PLAYER_1_COLOUR;
                 draw_single_piece(&mut painter, piece_type, icon_scale);
             }
         }
