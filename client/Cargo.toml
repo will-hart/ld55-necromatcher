@@ -13,3 +13,5 @@ built = { version = "0.7", features = ["git2"] }
 anyhow = { workspace = true }
 bevy = "0.13"
 bevy_vector_shapes = "0.7"
+rand = { workspace = true }
+rand_chacha = { workspace = true }

@@ -8,6 +8,7 @@ use bevy::{
 
 use self::state::GameState;
 
+pub(crate) mod event;
 pub(crate) mod state;
 
 /// Number of rows in the grid
