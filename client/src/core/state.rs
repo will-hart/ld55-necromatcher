@@ -101,8 +101,12 @@ impl GameState {
     fn validate_event(&self, game_event: &mut GameEvent) -> anyhow::Result<()> {
         match game_event {
             GameEvent::SeedRng { seed: _seed } => Ok(()),
-            GameEvent::PlacePlayerPiece { x, y, piece_type } => {
-                if self.is_valid_placement_position(*x, *y, *piece_type) {
+            GameEvent::PlacePlayerPiece {
+                x,
+                y,
+                piece_type: _,
+            } => {
+                if self.is_valid_placement_position(*x, *y) {
                     Ok(())
                 } else {
                     bail!("Unable to place piece - location is not valid");
@@ -147,7 +151,7 @@ impl GameState {
         &self,
         selected_x: usize,
         selected_y: usize,
-        piece_type: PieceType,
+        // piece_type: PieceType,
     ) -> bool {
         if selected_x == usize::MAX || selected_y == usize::MAX {
             return false;
@@ -157,22 +161,22 @@ impl GameState {
 
         let selected_tile_exists = selected_tile.is_some();
 
-        let selected_tile_is_player_occupied = selected_tile
+        let selected_tile_is_occupied = selected_tile
             .map(|t| match t.piece {
-                Piece::Player0(_) => true,
-                _ => false,
+                Piece::Empty => false,
+                _ => true,
             })
             .unwrap_or(false);
 
         let neighbour_contains_player_piece = self
-            .get_neighbours(selected_x, selected_y, piece_type)
+            .get_neighbours(selected_x, selected_y, PieceType::Square)
             .iter()
             .any(|(nx, ny)| match self.tiles[tile_to_idx(*nx, *ny)].piece {
                 Piece::Player0(_) => true,
                 _ => false,
             });
 
-        selected_tile_exists && !selected_tile_is_player_occupied && neighbour_contains_player_piece
+        selected_tile_exists && !selected_tile_is_occupied && neighbour_contains_player_piece
     }
 
     /// Gets neighbouring cells for this tile piece at the given x/y tile coordinate
