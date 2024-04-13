@@ -10,6 +10,7 @@ use self::state::GameState;
 
 pub(crate) mod event;
 pub(crate) mod state;
+pub(crate) mod utils;
 
 /// Number of rows in the grid
 pub const ROWS: usize = 8;

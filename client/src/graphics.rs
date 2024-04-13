@@ -6,12 +6,17 @@ use bevy_vector_shapes::{
 };
 
 use crate::{
+    core::utils::{tile_coords, tile_to_idx, world_to_tile},
     core::{
         state::{GameState, Piece, PieceType},
         COLS, GRID_SIZE, ROWS,
     },
-    input::{tile_coords, world_to_tile, CursorWorldCoords},
+    input::CursorWorldCoords,
 };
+
+use self::hover_state::HoverStateContainer;
+
+mod hover_state;
 
 pub const SHAPE_SIZE: f32 = GRID_SIZE as f32 / 8.;
 
@@ -53,7 +58,13 @@ fn draw_grid(cursor_coords: Res<CursorWorldCoords>, mut painter: ShapePainter) {
     }
 }
 
-fn draw_pieces(mut painter: ShapePainter, state: Res<GameState>) {
+fn draw_pieces(
+    mut painter: ShapePainter,
+    state: Res<GameState>,
+    cursor_coords: Res<CursorWorldCoords>,
+    time: Res<Time>,
+    mut hover: Local<HoverStateContainer>,
+) {
     let p0_colour = Color::rgb_linear(0., 1.8, 0.3);
     let p1_colour = Color::rgb_linear(2.8, 0., 0.3);
 
@@ -62,9 +73,19 @@ fn draw_pieces(mut painter: ShapePainter, state: Res<GameState>) {
     painter.hollow = true;
     painter.color = p0_colour;
 
+    // update our hover state, which offsets the pieces based on when our mouse is over them,
+    // then animates them back
+    let (xsel, ysel) = world_to_tile(cursor_coords.0).unwrap_or((usize::MAX, usize::MAX));
+    hover.update(tile_to_idx(xsel, ysel), time.delta_seconds());
+
     for tile in state.tiles.iter() {
         let world_coords = tile_coords(tile.x, tile.y);
-        painter.translate(world_coords.min.extend(0.5));
+        let x_offset = if let Some(hover_state) = hover.get_hover_state(tile.idx()) {
+            hover_state.x_offset
+        } else {
+            0.
+        };
+        painter.translate(world_coords.min.extend(0.5) + Vec3::new(x_offset, 0.0, 0.0));
 
         match &tile.piece {
             Piece::Empty => {

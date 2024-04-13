@@ -32,35 +32,3 @@ fn track_cursor_position(
         cursor_coords.0 = world_position;
     }
 }
-
-/// convert from tile x/y to a world coordinate
-pub fn tile_coords(x: usize, y: usize) -> Rect {
-    let xcoord = (x * GRID_SIZE) as f32 - 0.5 * (GRID_SIZE * COLS) as f32;
-    let ycoord = (y * GRID_SIZE) as f32 - 0.5 * (GRID_SIZE * ROWS) as f32;
-
-    Rect {
-        min: Vec2::new(xcoord, ycoord),
-        max: Vec2::new(xcoord + GRID_SIZE as f32, ycoord + GRID_SIZE as f32),
-    }
-}
-
-/// convert from world coordinates to a specific tile number
-pub fn world_to_tile(world_pos: Vec2) -> Option<(usize, usize)> {
-    let x =
-        (world_pos.x + 0.5 * (GRID_SIZE * COLS) as f32 + 0.5 * GRID_SIZE as f32) / GRID_SIZE as f32;
-    let y =
-        (world_pos.y + 0.5 * (GRID_SIZE * COLS) as f32 + 0.5 * GRID_SIZE as f32) / GRID_SIZE as f32;
-
-    if x < 0. || y < 0. {
-        None
-    } else {
-        let x = x.floor() as usize;
-        let y = y.floor() as usize;
-
-        if x >= COLS || y >= ROWS {
-            return None;
-        }
-
-        Some((x, y))
-    }
-}

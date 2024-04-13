@@ -2,7 +2,9 @@ use bevy::prelude::Resource;
 use rand::{thread_rng, RngCore, SeedableRng};
 use rand_chacha::ChaCha20Rng;
 
-use super::{event::GameEvent, COLS, ROWS};
+use crate::core::utils::{idx_to_tile, tile_to_idx};
+
+use super::{event::GameEvent, COLS};
 
 #[derive(Debug, Copy, Clone)]
 pub enum PieceType {
@@ -27,7 +29,7 @@ pub struct Tile {
 
 impl Tile {
     pub fn idx(&self) -> usize {
-        self.x * COLS + self.y * ROWS
+        tile_to_idx(self.x, self.y)
     }
 }
 
@@ -50,12 +52,13 @@ impl Default for GameState {
             events: vec![event],
 
             tiles: std::array::from_fn(|idx| {
-                let x = idx % COLS;
-                let y = (idx - x) / ROWS;
+                let (x, y) = idx_to_tile(idx);
 
                 Tile {
                     x,
                     y,
+
+                    // TODO: Piece::Empty for all these or load from "map"
                     piece: if x % 5 == 0 {
                         Piece::Player0(PieceType::Circle)
                     } else if (x + y) % 7 == 0 {
