@@ -11,7 +11,7 @@ use crate::{
             DEFAULT_GRID_BORDER, DEFAULT_GRID_HOVER_BORDER_INVALID,
             DEFAULT_GRID_HOVER_BORDER_VALID, PLAYER_0_COLOUR, PLAYER_1_COLOUR,
         },
-        state::{GameState, Piece, PieceType, PlayingPiece},
+        state::{GameState, Piece, PieceType},
         utils::{tile_coords, tile_to_idx, world_to_tile},
         COLS, GRID_SIZE, ROWS,
     },
@@ -36,7 +36,6 @@ impl Plugin for GraphicsPlugin {
 fn draw_grid(
     cursor_coords: Res<CursorWorldCoords>,
     state: Res<GameState>,
-    playing_piece: Res<PlayingPiece>,
     mut painter: ShapePainter,
 ) {
     let pos = painter.transform.clone();
@@ -45,14 +44,13 @@ fn draw_grid(
     painter.hollow = true;
 
     let (xsel, ysel) = world_to_tile(cursor_coords.0).unwrap_or((usize::MAX, usize::MAX));
-    let neighbours = state.get_neighbours(xsel, ysel, playing_piece.0);
     let is_valid_placement_position = state.is_valid_placement_position(xsel, ysel);
 
     for x in 0..COLS {
         for y in 0..ROWS {
             let coords = tile_coords(x, y);
 
-            if (xsel == x && ysel == y) || neighbours.contains(&(x, y)) {
+            if xsel == x && ysel == y {
                 painter.color = if is_valid_placement_position {
                     DEFAULT_GRID_HOVER_BORDER_VALID
                 } else {
@@ -91,12 +89,12 @@ fn draw_pieces(
 
     for tile in state.tiles.iter() {
         let world_coords = tile_coords(tile.x, tile.y);
-        let x_offset = if let Some(hover_state) = hover.get_hover_state(tile.idx()) {
-            hover_state.x_offset
+        let icon_scale = if let Some(hover_state) = hover.get_hover_state(tile.idx()) {
+            hover_state.scale
         } else {
-            0.
+            1.0
         };
-        painter.translate(world_coords.min.extend(0.5) + Vec3::new(x_offset, 0.0, 0.0));
+        painter.translate(world_coords.min.extend(0.5));
 
         match &tile.piece {
             Piece::Empty => {
@@ -104,11 +102,11 @@ fn draw_pieces(
             }
             Piece::Player0(piece_type) => {
                 painter.color = p0_colour;
-                draw_single_piece(&mut painter, piece_type);
+                draw_single_piece(&mut painter, piece_type, icon_scale);
             }
             Piece::Player1(piece_type) => {
                 painter.color = p1_colour;
-                draw_single_piece(&mut painter, piece_type);
+                draw_single_piece(&mut painter, piece_type, icon_scale);
             }
         }
 
@@ -116,19 +114,19 @@ fn draw_pieces(
     }
 }
 
-fn draw_single_piece(painter: &mut ShapePainter, piece_type: &PieceType) {
+fn draw_single_piece(painter: &mut ShapePainter, piece_type: &PieceType, scale: f32) {
     match piece_type {
         PieceType::Square => {
-            painter.rect(Vec2::splat(2. * SHAPE_SIZE));
+            painter.rect(Vec2::splat(2. * scale * SHAPE_SIZE));
         }
         PieceType::Circle => {
-            painter.circle(SHAPE_SIZE);
+            painter.circle(scale * SHAPE_SIZE);
         }
         PieceType::Triangle => {
             painter.triangle(
-                Vec2::new(0., SHAPE_SIZE),
-                Vec2::new(SHAPE_SIZE, -SHAPE_SIZE),
-                Vec2::new(-SHAPE_SIZE, -SHAPE_SIZE),
+                Vec2::new(0., scale * SHAPE_SIZE),
+                Vec2::new(scale * SHAPE_SIZE, scale * -SHAPE_SIZE),
+                Vec2::new(scale * -SHAPE_SIZE, scale * -SHAPE_SIZE),
             );
         }
     }

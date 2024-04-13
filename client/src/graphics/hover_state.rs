@@ -1,15 +1,13 @@
 use bevy::log::trace;
 
-use crate::core::GRID_SIZE;
-
 const INVALID_HOVER_STATE: usize = usize::MAX;
-const ANIMATION_SPEED: f32 = 60.0;
-const MAX_OFFSET: f32 = GRID_SIZE as f32 / 4.0;
+const ANIMATION_SPEED: f32 = 20.0;
+const MAX_OFFSET: f32 = 1.3;
 
 #[derive(Debug, Clone, Copy)]
 pub struct HoverState {
+    pub scale: f32,
     idx: usize,
-    pub x_offset: f32,
     direction_is_out: bool,
 }
 
@@ -23,7 +21,7 @@ impl Default for HoverState {
     fn default() -> Self {
         Self {
             idx: INVALID_HOVER_STATE,
-            x_offset: 0.,
+            scale: 1.,
             direction_is_out: false,
         }
     }
@@ -33,7 +31,7 @@ impl HoverState {
     pub fn new(idx: usize) -> Self {
         Self {
             idx,
-            x_offset: 0.,
+            scale: 1.,
             direction_is_out: true,
         }
     }
@@ -44,14 +42,14 @@ impl HoverState {
             return;
         }
 
-        let sign = if self.direction_is_out { 1. } else { -1.5 };
-        self.x_offset = (self.x_offset + dt * sign * ANIMATION_SPEED).clamp(0., MAX_OFFSET);
+        let sign = if self.direction_is_out { 1. } else { -1. };
+        self.scale = (self.scale + dt * sign * ANIMATION_SPEED).clamp(0., MAX_OFFSET);
     }
 
     /// Is the animation done and can be removed?
     /// Requires - not empty, is moving inwards, and the offset is "close to 0"
     pub fn is_done(&self) -> bool {
-        !self.is_empty() && !self.direction_is_out && self.x_offset < 0.001
+        !self.is_empty() && !self.direction_is_out && self.scale < 0.001
     }
 
     pub fn is_empty(&self) -> bool {
