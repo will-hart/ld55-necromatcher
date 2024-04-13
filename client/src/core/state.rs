@@ -6,11 +6,25 @@ use crate::core::utils::{idx_to_tile, tile_to_idx};
 
 use super::{event::GameEvent, COLS};
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Default, Resource)]
+pub struct PlayingPiece(pub PieceType);
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Default)]
 pub enum PieceType {
+    #[default]
     Square,
     Circle,
     Triangle,
+}
+
+impl PieceType {
+    pub fn toggle(self) -> Self {
+        match self {
+            PieceType::Square => PieceType::Circle,
+            PieceType::Circle => PieceType::Triangle,
+            PieceType::Triangle => PieceType::Square,
+        }
+    }
 }
 
 #[derive(Debug, Copy, Clone)]

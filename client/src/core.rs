@@ -6,8 +6,9 @@ use bevy::{
     prelude::*,
 };
 
-use self::state::GameState;
+use self::state::{GameState, PlayingPiece};
 
+pub(crate) mod colours;
 pub(crate) mod event;
 pub(crate) mod state;
 pub(crate) mod utils;
@@ -27,6 +28,7 @@ impl Plugin for CorePlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(ClearColor(Color::BLACK))
             .init_resource::<GameState>()
+            .init_resource::<PlayingPiece>()
             .add_systems(Startup, spawn_camera);
     }
 }

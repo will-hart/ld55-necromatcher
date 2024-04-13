@@ -1,12 +1,13 @@
 use bevy::{prelude::*, window::PrimaryWindow};
 
-use crate::core::{MainCamera, COLS, GRID_SIZE, ROWS};
+use crate::core::{state::PlayingPiece, MainCamera};
 pub struct InputPlugin;
 
 impl Plugin for InputPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<CursorWorldCoords>()
-            .add_systems(PreUpdate, track_cursor_position);
+            .add_systems(PreUpdate, track_cursor_position)
+            .add_systems(Update, handle_piece_type);
     }
 }
 
@@ -30,5 +31,14 @@ fn track_cursor_position(
         .map(|ray| ray.origin.truncate())
     {
         cursor_coords.0 = world_position;
+    }
+}
+
+pub fn handle_piece_type(
+    buttons: Res<ButtonInput<MouseButton>>,
+    mut playing_piece: ResMut<PlayingPiece>,
+) {
+    if buttons.just_pressed(MouseButton::Right) {
+        playing_piece.0 = playing_piece.0.toggle();
     }
 }

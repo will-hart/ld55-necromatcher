@@ -6,9 +6,13 @@ use bevy_vector_shapes::{
 };
 
 use crate::{
-    core::utils::{tile_coords, tile_to_idx, world_to_tile},
     core::{
-        state::{GameState, Piece, PieceType},
+        colours::{
+            DEFAULT_GRID_BORDER, DEFAULT_GRID_HOVER_BORDER, DEFAULT_GRID_NEIGHBOUR_HOVER_BORDER,
+            PLAYER_0_COLOUR, PLAYER_1_COLOUR,
+        },
+        state::{GameState, Piece, PieceType, PlayingPiece},
+        utils::{get_neighbours, tile_coords, tile_to_idx, world_to_tile},
         COLS, GRID_SIZE, ROWS,
     },
     input::CursorWorldCoords,
@@ -29,26 +33,29 @@ impl Plugin for GraphicsPlugin {
     }
 }
 
-fn draw_grid(cursor_coords: Res<CursorWorldCoords>, mut painter: ShapePainter) {
+fn draw_grid(
+    cursor_coords: Res<CursorWorldCoords>,
+    playing_piece: Res<PlayingPiece>,
+    mut painter: ShapePainter,
+) {
     let pos = painter.transform.clone();
-
-    let default_colour = Color::rgb_linear(0.05, 0.05, 0.05);
-    let hover_colour = Color::rgb_linear(1.15, 1.15, 1.15);
 
     painter.thickness = 0.5;
     painter.hollow = true;
-    painter.color = default_colour;
 
     let (xsel, ysel) = world_to_tile(cursor_coords.0).unwrap_or((usize::MAX, usize::MAX));
+    let neighbours = get_neighbours(xsel, ysel, playing_piece.0);
 
     for x in 0..COLS {
         for y in 0..ROWS {
             let coords = tile_coords(x, y);
 
             if xsel == x && ysel == y {
-                painter.color = hover_colour;
+                painter.color = DEFAULT_GRID_HOVER_BORDER;
+            } else if neighbours.contains(&(x, y)) {
+                painter.color = DEFAULT_GRID_NEIGHBOUR_HOVER_BORDER;
             } else {
-                painter.color = default_colour
+                painter.color = DEFAULT_GRID_BORDER
             }
 
             painter.translate(Vec3::new(coords.min.x + 1., coords.min.y + 1., 0.));
@@ -65,8 +72,8 @@ fn draw_pieces(
     time: Res<Time>,
     mut hover: Local<HoverStateContainer>,
 ) {
-    let p0_colour = Color::rgb_linear(0., 1.8, 0.3);
-    let p1_colour = Color::rgb_linear(2.8, 0., 0.3);
+    let p0_colour = PLAYER_0_COLOUR;
+    let p1_colour = PLAYER_1_COLOUR;
 
     let pos = painter.transform.clone();
     painter.thickness = 1.;
