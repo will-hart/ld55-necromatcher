@@ -1,4 +1,4 @@
-use bevy::{log::info, prelude::*};
+use bevy::{asset::AssetMetaCheck, log::info, prelude::*};
 
 use crate::{
     animation::animate_sprite, audio::InternalAudioPlugin, core::CorePlugin,
@@ -29,6 +29,7 @@ pub enum AppState {
 fn main() {
     let mut app = App::new();
     app.init_state::<AppState>()
+        .insert_resource(AssetMetaCheck::Never)
         .add_plugins((DefaultPlugins.set(WindowPlugin {
             primary_window: Some(Window {
                 title: format!("Necromatcher v{}", built_info::PKG_VERSION),
