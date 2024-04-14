@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
 use crate::{
-    core::state::{side_effects::GameOverDude, GameState, PieceType},
+    core::state::{side_effects::GameOverDude, GameState, PieceType, PlayingPiece},
     graphics::SHAPE_SIZE,
 };
 
@@ -138,6 +138,10 @@ fn update_available_items_ui(
             PieceType::Square => state.num_squares,
             PieceType::Circle => state.num_circles,
             PieceType::Triangle => state.num_triangles,
+            _ => panic!(
+                "wrong piece type passed to update_available_items_ui UI - {:?}",
+                piece.0
+            ),
         };
 
         text.sections[0].value = format!("{value} remaining");

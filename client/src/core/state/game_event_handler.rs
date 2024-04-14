@@ -105,6 +105,9 @@ impl StateEventHandler for GameState {
                         PieceType::Triangle => {
                             self.num_triangles -= 1;
                         }
+                        PieceType::Wall => {
+                            // nop
+                        }
                     }
 
                     // place the piece
@@ -152,6 +155,9 @@ impl StateEventHandler for GameState {
                                     PieceType::Square => self.num_squares += 1,
                                     PieceType::Circle => self.num_circles += 1,
                                     PieceType::Triangle => self.num_triangles += 1,
+                                    PieceType::Wall => {
+                                        //nop, how is this even possible?
+                                    }
                                 }
                             }
 

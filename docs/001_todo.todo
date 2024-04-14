@@ -22,7 +22,7 @@ Core functionality for LD:
       Cancelled as this is being abandoned as per "enemy summon side effects" above
   
   ✔ CI @done(24-04-14 17:49)
-  - Walls / other unplaceable pieces
+  ✔ Walls / other obstacle pieces @done(24-04-14 18:19)
     This can add some complexity
   - Campaign story messages in each level
   - Splash / menu screen

@@ -73,8 +73,11 @@ fn parse_level_file(data: &str) -> LevelData {
                     "11" => Piece::Player1(PieceType::Circle),
                     "12" => Piece::Player1(PieceType::Square),
                     "13" => Piece::Player1(PieceType::Triangle),
+                    "99" => Piece::Obstacle(PieceType::Wall),
                     v => {
-                        panic!("Failed to load text file - found {v}, expected 0,1,2,3,11,12 or 13")
+                        panic!(
+                            "Failed to load text file - found {v}, expected 0,1,2,3,11,12,13 or 99"
+                        )
                     }
                 })
                 .collect::<Vec<_>>()

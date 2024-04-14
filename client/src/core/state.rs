@@ -1,4 +1,4 @@
-use bevy::prelude::Resource;
+use bevy::{ecs::component::Component, prelude::Resource};
 
 use rand::{thread_rng, RngCore, SeedableRng};
 use rand_chacha::ChaCha20Rng;
@@ -20,6 +20,7 @@ pub enum PieceType {
     Square,
     Circle,
     Triangle,
+    Wall,
 }
 
 impl PieceType {
@@ -28,14 +29,20 @@ impl PieceType {
             PieceType::Square => PieceType::Circle,
             PieceType::Circle => PieceType::Triangle,
             PieceType::Triangle => PieceType::Square,
+            _ => self,
         }
     }
 }
+
+#[derive(Component)]
+pub struct Obstacle;
 
 #[derive(Debug, Copy, Clone)]
 pub enum Piece {
     /// No piece at all
     Empty,
+    /// An obstacle which blocks matches and placements and for now can't be destroyed
+    Obstacle(PieceType),
     /// A piece owned by the player
     Player0(PieceType),
     /// A piece owned by the computer
@@ -103,6 +110,7 @@ impl GameState {
             PieceType::Square => self.num_squares,
             PieceType::Circle => self.num_circles,
             PieceType::Triangle => self.num_triangles,
+            _ => 0,
         }) > 0
     }
 
@@ -168,6 +176,10 @@ impl GameState {
                 (1, 1),
             ],
             PieceType::Triangle => vec![(0, -1), (0, 1)],
+            _ => {
+                // you're in the wrong place dude
+                return vec![];
+            }
         }
         .iter()
         .filter_map(|(dx, dy)| {
@@ -188,7 +200,7 @@ impl GameState {
 
         // check matches
         let mut expected: Option<PieceType> = match self.tiles[0].piece {
-            Piece::Empty => None,
+            Piece::Empty | Piece::Obstacle(_) => None,
             Piece::Player0(pt) => Some(pt),
             Piece::Player1(pt) => Some(pt),
         };
@@ -210,7 +222,7 @@ impl GameState {
 
                 // find the current piece type
                 let current_piece_type = match self.tiles[idx].piece {
-                    Piece::Empty => None,
+                    Piece::Empty | Piece::Obstacle(_) => None,
                     Piece::Player0(pt) => Some(pt),
                     Piece::Player1(pt) => Some(pt),
                 };

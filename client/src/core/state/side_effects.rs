@@ -13,7 +13,7 @@ use crate::{
     },
 };
 
-use super::{GameState, PieceType};
+use super::{GameState, Obstacle, PieceType};
 
 /// Spawned when the game is over, dude
 #[derive(Component)]
@@ -106,6 +106,9 @@ pub fn side_effect_handler(
                         super::Piece::Player1(pt) => {
                             spawn_game_piece(&mut commands, tile.idx(), pt, false, None);
                         }
+                        super::Piece::Obstacle(pt) => {
+                            spawn_obstacle(&mut commands, tile.idx(), pt);
+                        }
                     }
                 }
             }
@@ -132,6 +135,17 @@ pub fn side_effect_handler(
             }
         }
     }
+}
+
+fn spawn_obstacle(commands: &mut Commands, idx: usize, piece_type: PieceType) {
+    commands.spawn((
+        GamePieceVisualisation {
+            idx,
+            piece_type,
+            is_player_owned: false,
+        },
+        Obstacle,
+    ));
 }
 
 fn spawn_game_piece(

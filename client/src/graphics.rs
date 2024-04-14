@@ -13,8 +13,8 @@ use crate::{
             DEFAULT_GRID_BORDER, DEFAULT_GRID_HOVER_BORDER_INVALID,
             DEFAULT_GRID_HOVER_BORDER_VALID, PLAYER_0_COLOUR, PLAYER_1_COLOUR,
         },
-        state::{side_effects::GameOverDude, GameState, PieceType, PlayingPiece},
-        utils::{idx_to_tile, tile_coords, world_to_tile},
+        state::{side_effects::GameOverDude, GameState, Piece, PieceType, PlayingPiece},
+        utils::{idx_to_tile, tile_coords, tile_to_idx, world_to_tile},
         COLS, GRID_SIZE, ROWS,
     },
     input::{CursorWorldCoords, DisableInput},
@@ -81,6 +81,7 @@ fn draw_grid(
                     DEFAULT_GRID_HOVER_BORDER_INVALID
                 };
 
+                // draw the current piece in outline if we're in a valid position
                 if is_valid_placement_position {
                     let col = painter.color;
                     painter.color = DEFAULT_GRID_BORDER;
@@ -93,7 +94,10 @@ fn draw_grid(
                 painter.color = DEFAULT_GRID_BORDER
             }
 
-            painter.rect(Vec2::new(GRID_SIZE as f32 - 2., GRID_SIZE as f32 - 2.));
+            // if this square i s an obstacle, don't do anything here
+            if !matches!(state.tiles[tile_to_idx(x, y)].piece, Piece::Obstacle(_)) {
+                painter.rect(Vec2::new(GRID_SIZE as f32 - 2., GRID_SIZE as f32 - 2.));
+            }
 
             painter.transform = pos;
         }
@@ -135,7 +139,7 @@ fn draw_current_piece(
 
 fn draw_pieces(
     mut painter: ShapePainter,
-    pieces: Query<(&GamePieceVisualisation, &AnimationState)>,
+    pieces: Query<(&GamePieceVisualisation, Option<&AnimationState>)>,
 ) {
     let pos = painter.transform;
     painter.thickness = 1.;
@@ -153,7 +157,11 @@ fn draw_pieces(
             PLAYER_1_COLOUR
         };
 
-        draw_single_piece(&mut painter, &piece.piece_type, animation.value());
+        draw_single_piece(
+            &mut painter,
+            &piece.piece_type,
+            animation.map(|o| o.value()).unwrap_or(1.0),
+        );
 
         painter.transform = pos;
     }
@@ -173,6 +181,9 @@ fn draw_single_piece(painter: &mut ShapePainter, piece_type: &PieceType, scale: 
                 Vec2::new(scale * SHAPE_SIZE, scale * -SHAPE_SIZE),
                 Vec2::new(scale * -SHAPE_SIZE, scale * -SHAPE_SIZE),
             );
+        }
+        PieceType::Wall => {
+            // nop - these are drawing in draw_grid() by omitting the grid background
         }
     }
 }
