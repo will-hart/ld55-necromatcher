@@ -14,11 +14,17 @@ impl Plugin for InternalAudioPlugin {
 pub struct AudioFiles {
     pub place: Handle<AudioSource>,
     pub despawn: Handle<AudioSource>,
+    pub level_complete: Handle<AudioSource>,
 }
 
 fn load_audio_files(mut commands: Commands, asset_server: Res<AssetServer>) {
     let place = asset_server.load("audio/place_piece.wav");
     let despawn = asset_server.load("audio/destroy.wav");
+    let level_complete = asset_server.load("audio/level_complete.wav");
 
-    commands.insert_resource(AudioFiles { place, despawn });
+    commands.insert_resource(AudioFiles {
+        place,
+        despawn,
+        level_complete,
+    });
 }
