@@ -75,7 +75,7 @@ fn spawn_menu_ui(
         ))
         .with_children(|parent| {
             parent.spawn((
-                TextBundle::from_section("Nercomatcher", header_text_style),
+                TextBundle::from_section("Necromatcher", header_text_style),
                 PieceTypeCounter(PieceType::Bowman),
             ));
             parent.spawn(NodeBundle {
