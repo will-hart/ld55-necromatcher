@@ -14,17 +14,20 @@ pub struct AudioFiles {
     pub place: Handle<AudioSource>,
     pub despawn: Handle<AudioSource>,
     pub level_complete: Handle<AudioSource>,
+    pub music: Handle<AudioSource>,
 }
 
 fn load_audio_files(mut commands: Commands, asset_server: Res<AssetServer>) {
     let place = asset_server.load("audio/place_piece.wav");
     let despawn = asset_server.load("audio/destroy.wav");
     let level_complete = asset_server.load("audio/level_complete.wav");
+    let music = asset_server.load("audio/music.wav");
 
     commands.insert_resource(AudioFiles {
         place,
         despawn,
         level_complete,
+        music,
     });
 }
 

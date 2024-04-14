@@ -1,6 +1,6 @@
 Hmmm... they seem pretty persistent. Was it the undead sheep that has the Pleasant Vale villagers so riled up? Either way, just as a precautionary measure it might be worth heading to town to see what they're up to. Ah look! The lumber camp up ahead seems busy, shall we see if they like puppies?
 14623451346136
-1,2,1
+3,2,1
 00,00,01,00,00,01,00,00
 00,99,99,00,00,99,99,00
 01,99,00,00,00,12,99,01
