@@ -1,18 +1,40 @@
-[workspace]
-resolver =  "2"
-members = [ 
-    "client",
-]
+[package]
+name = "necromatcher"
+version = "0.1.1"
+edition = "2021"
+build = "build.rs"
 
-[workspace.dependencies]
-anyhow = "1.0.81"
+[build-dependencies]
+built = { version = "0.7", features = ["git2"] }
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = "1.0.82"
+bevy = { version = "0.13", default-features = false, features = [
+    "animation",
+    "bevy_asset",
+    "bevy_gilrs",
+    "bevy_scene",
+    "bevy_winit",
+    "bevy_core_pipeline",
+    "bevy_pbr",
+    "bevy_gltf",
+    "bevy_render",
+    "bevy_sprite",
+    "bevy_text",
+    "bevy_ui",
+    "multi-threaded",
+    "png",
+    "hdr",
+    "x11",
+    "bevy_gizmos",
+    "tonemapping_luts",
+    "default_font",
+    "webgl2",
+    "bevy_debug_stepping",
+] }
+bevy_kira_audio = { version = "0.19", default-features = false, features = ["wav"] }
+bevy_vector_shapes = "0.7"
 rand = "0.8.5"
 rand_chacha = "0.3.1"
-
-# Enable a small amount of optimization in debug mode
-[profile.dev]
-opt-level = 1
-
-# Enable high optimizations for dependencies (incl. Bevy), but not for our code:
-[profile.dev.package."*"]
-opt-level = 3

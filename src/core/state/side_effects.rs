@@ -61,7 +61,7 @@ pub fn spawn_sprites_for_visualisations(
         };
 
         if !vis.is_player_owned && first < 12 {
-            first = first + 6;
+            first += 6;
         }
 
         let (x, y) = idx_to_tile(vis.idx);
