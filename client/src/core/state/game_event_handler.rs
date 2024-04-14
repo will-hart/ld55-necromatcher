@@ -20,7 +20,7 @@ use crate::core::{
 
 use super::{level_loader::StateLevelLoader, side_effects::SideEffect, GameState};
 
-pub const DEFAULT_DESPAWN_DELAY: f32 = 1.0;
+pub const DEFAULT_DESPAWN_DELAY: f32 = 0.5;
 
 /// A system that listens for [GameEvent]s and uses them to mutate the state
 pub fn state_mutation(

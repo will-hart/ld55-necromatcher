@@ -16,7 +16,12 @@ impl StateLevelLoader for GameState {
             warn!("Ignoring level loading request as {level_id} is greater than the length of the available LEVELS {}", Self::LEVELS.len());
             return;
         }
-        let pieces = parse_level_file(Self::LEVELS[level_id]);
+        let ((num_tris, num_circles, num_squares), pieces) =
+            parse_level_file(Self::LEVELS[level_id]);
+
+        self.num_triangles = num_tris;
+        self.num_squares = num_squares;
+        self.num_circles = num_circles;
 
         for (idx, piece) in pieces.into_iter().enumerate() {
             self.tiles[idx].piece = piece;
@@ -24,9 +29,10 @@ impl StateLevelLoader for GameState {
     }
 }
 
-fn parse_level_file(data: &str) -> Vec<Piece> {
-    let data = data
+fn parse_level_file(data: &str) -> ((usize, usize, usize), Vec<Piece>) {
+    let pieces = data
         .lines()
+        .skip(1)
         .map(|line| {
             line.split(',')
                 .map(|i| match i {
@@ -45,7 +51,18 @@ fn parse_level_file(data: &str) -> Vec<Piece> {
         })
         .flatten()
         .collect::<Vec<_>>();
+    debug_assert_eq!(pieces.len(), 64);
 
-    debug_assert_eq!(data.len(), 64);
-    data
+    let numbers = data
+        .lines()
+        .take(1)
+        .map(|line| {
+            line.split(',')
+                .map(|item| item.parse::<usize>().expect("parse level to usize"))
+        })
+        .flatten()
+        .collect::<Vec<_>>();
+    debug_assert_eq!(numbers.len(), 3);
+
+    ((0, 0, 0), pieces)
 }

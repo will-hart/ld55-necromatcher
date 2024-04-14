@@ -60,6 +60,10 @@ pub struct GameState {
     /// the tiles that make up the game
     pub tiles: [Tile; 64],
 
+    pub num_triangles: usize,
+    pub num_squares: usize,
+    pub num_circles: usize,
+
     rng: ChaCha20Rng,
     events: Vec<GameEvent>,
 }
@@ -82,6 +86,9 @@ impl Default for GameState {
             rng: ChaCha20Rng::seed_from_u64(seed),
             events: vec![event],
             tiles,
+            num_triangles: 0,
+            num_squares: 0,
+            num_circles: 0,
         }
     }
 }
