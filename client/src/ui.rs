@@ -1,8 +1,10 @@
 use bevy::prelude::*;
 
 use crate::{
+    animation::{AnimationIndices, AnimationTimer},
     core::state::{side_effects::GameOverDude, GameState, PieceType, PlayingPiece},
     graphics::SHAPE_SIZE,
+    loaders::SpritesheetFiles,
     AppState,
 };
 
@@ -40,7 +42,11 @@ pub struct CurrentLevelText;
 #[derive(Component)]
 pub struct MenuItem;
 
-fn spawn_menu_ui(mut commands: Commands) {
+fn spawn_menu_ui(
+    mut commands: Commands,
+    spritesheets: Res<SpritesheetFiles>,
+    mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
+) {
     let text_style = TextStyle {
         font_size: 18.,
         color: Color::GRAY,
@@ -52,23 +58,25 @@ fn spawn_menu_ui(mut commands: Commands) {
     header_text_style.color = Color::WHITE;
 
     commands
-        .spawn(NodeBundle {
-            style: Style {
-                flex_direction: FlexDirection::Column,
-                width: Val::Percent(100.),
-                height: Val::Percent(100.),
-                justify_content: JustifyContent::Center,
-                align_items: AlignItems::Center,
-                padding: UiRect::all(Val::Px(20.)),
+        .spawn((
+            NodeBundle {
+                style: Style {
+                    flex_direction: FlexDirection::Column,
+                    width: Val::Percent(100.),
+                    height: Val::Percent(100.),
+                    justify_content: JustifyContent::Center,
+                    align_items: AlignItems::Center,
+                    padding: UiRect::all(Val::Px(20.)),
+                    ..default()
+                },
                 ..default()
             },
-            ..default()
-        })
+            MenuItem
+        ))
         .with_children(|parent| {
             parent.spawn((
                 TextBundle::from_section("Nercomatcher", header_text_style),
                 PieceTypeCounter(PieceType::Triangle),
-                MenuItem,
             ));
             parent.spawn(NodeBundle {
                 style: Style {
@@ -79,15 +87,62 @@ fn spawn_menu_ui(mut commands: Commands) {
                 parent.spawn((
                     TextBundle::from_section("A puzzle match 3 game made in about a day for Ludum Dare 55. Summon creatures to build up combinations of three or more human souls (red pieces), harvesting them for your own use.\n\nPress [space] to start.", text_style),
                     PieceTypeCounter(PieceType::Triangle),
-                    MenuItem,
                 ));
             });
         });
+
+    let layout = TextureAtlasLayout::from_grid(Vec2::new(32.0, 32.0), 13, 1, None, None);
+    let layout = texture_atlas_layouts.add(layout);
+
+    commands.spawn((
+        SpriteSheetBundle {
+            texture: spritesheets.main_sheet.clone(),
+            atlas: TextureAtlas {
+                layout: layout.clone(),
+                index: 0,
+            },
+            transform: Transform::from_xyz(0., 50., 0.0),
+            ..default()
+        },
+        AnimationIndices { first: 0, last: 1 },
+        AnimationTimer(Timer::from_seconds(0.5, TimerMode::Repeating)),
+        MenuItem,
+    ));
+
+    commands.spawn((
+        SpriteSheetBundle {
+            texture: spritesheets.main_sheet.clone(),
+            atlas: TextureAtlas {
+                layout: layout.clone(),
+                index: 2,
+            },
+            transform: Transform::from_xyz(-40., 50., 0.0),
+            ..default()
+        },
+        AnimationIndices { first: 2, last: 3 },
+        AnimationTimer(Timer::from_seconds(0.5, TimerMode::Repeating)),
+        MenuItem,
+    ));
+
+    commands.spawn((
+        SpriteSheetBundle {
+            texture: spritesheets.main_sheet.clone(),
+            atlas: TextureAtlas {
+                layout: layout.clone(),
+                index: 4,
+            },
+            transform: Transform::from_xyz(40., 50., 0.0),
+            ..default()
+        },
+        AnimationIndices { first: 4, last: 5 },
+        AnimationTimer(Timer::from_seconds(0.35, TimerMode::Repeating)),
+        MenuItem,
+    ));
 }
 
 fn despawn_menu_ui(mut commands: Commands, menu_items: Query<Entity, With<MenuItem>>) {
     for item in menu_items.iter() {
-        commands.entity(item).despawn();
+        commands.entity(item).despawn_recursive();
     }
 }
 

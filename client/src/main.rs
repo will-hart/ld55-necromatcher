@@ -1,14 +1,16 @@
 use bevy::{log::info, prelude::*};
 
 use crate::{
-    audio::InternalAudioPlugin, core::CorePlugin, graphics::GraphicsPlugin, input::InputPlugin,
-    ui::UiPlugin,
+    animation::animate_sprite, audio::InternalAudioPlugin, core::CorePlugin,
+    graphics::GraphicsPlugin, input::InputPlugin, loaders::LoaderPlugin, ui::UiPlugin,
 };
 
+pub(crate) mod animation;
 mod audio;
 mod core;
 mod graphics;
 mod input;
+mod loaders;
 mod ui;
 
 // Use of a mod or pub mod is not actually necessary.
@@ -37,11 +39,13 @@ fn main() {
         }),))
         .add_plugins((
             CorePlugin,
+            LoaderPlugin,
             InputPlugin,
             GraphicsPlugin,
             UiPlugin,
             InternalAudioPlugin,
-        ));
+        ))
+        .add_systems(Update, animate_sprite);
 
     info!(
         "Starting Necromatcher client application - v{} - SHA: {}",

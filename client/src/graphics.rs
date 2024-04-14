@@ -7,7 +7,6 @@ use bevy_vector_shapes::{
 };
 
 use crate::{
-    audio::AudioFiles,
     core::{
         colours::{
             DEFAULT_GRID_BORDER, DEFAULT_GRID_HOVER_BORDER_INVALID,
@@ -18,6 +17,7 @@ use crate::{
         COLS, GRID_SIZE, ROWS,
     },
     input::{CursorWorldCoords, DisableInput},
+    loaders::AudioFiles,
     AppState,
 };
 

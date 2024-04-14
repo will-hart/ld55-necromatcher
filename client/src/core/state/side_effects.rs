@@ -2,7 +2,6 @@ use bevy::prelude::*;
 use bevy_kira_audio::{Audio, AudioControl};
 
 use crate::{
-    audio::AudioFiles,
     core::{
         event::GameEvent,
         state::{game_event_handler::DEFAULT_DESPAWN_DELAY, level_loader::NUM_LEVELS},
@@ -11,6 +10,7 @@ use crate::{
         hover_state::{AnimationState, DEFAULT_ANIMATION_SPEED},
         piece_visualisation::{DespawnItem, GamePieceVisualisation},
     },
+    loaders::AudioFiles,
 };
 
 use super::{GameState, Obstacle, PieceType};
