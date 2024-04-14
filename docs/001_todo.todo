@@ -11,8 +11,8 @@ Core functionality for LD:
   - enemy summon side effects
   - at least 4 levels
   some basic sound effects:
-    - hit on place
-    - ping on despawn
+    ✔ hit on place @done(24-04-14 16:30)
+    ✔ ping on despawn @done(24-04-14 16:30)
     - rawr on enemy summon
   - CI + push to itch
   - LD page

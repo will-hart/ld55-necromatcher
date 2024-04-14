@@ -1,6 +1,8 @@
 use bevy::prelude::*;
+use bevy_kira_audio::{Audio, AudioControl};
 
 use crate::{
+    audio::AudioFiles,
     core::{
         event::GameEvent,
         state::{game_event_handler::DEFAULT_DESPAWN_DELAY, level_loader::NUM_LEVELS},
@@ -43,6 +45,8 @@ pub fn side_effect_handler(
     mut game_events: EventWriter<GameEvent>,
     time: Res<Time>,
     state: Res<GameState>,
+    audio: Res<Audio>,
+    audio_files: Res<AudioFiles>,
     game_overs: Query<Entity, With<GameOverDude>>,
     piece_query: Query<(Entity, &GamePieceVisualisation)>,
     mut animations: Query<&mut AnimationState, With<GamePieceVisualisation>>,
@@ -56,17 +60,21 @@ pub fn side_effect_handler(
                 piece_type,
                 is_player_owned,
                 also_destroy,
-            } => spawn_game_piece(
-                &mut commands,
-                *idx,
-                *piece_type,
-                *is_player_owned,
-                if *also_destroy {
-                    Some(time.elapsed_seconds() + DEFAULT_DESPAWN_DELAY)
-                } else {
-                    None
-                },
-            ),
+            } => {
+                spawn_game_piece(
+                    &mut commands,
+                    *idx,
+                    *piece_type,
+                    *is_player_owned,
+                    if *also_destroy {
+                        Some(time.elapsed_seconds() + DEFAULT_DESPAWN_DELAY)
+                    } else {
+                        None
+                    },
+                );
+
+                audio.play(audio_files.place.clone()).with_volume(0.5);
+            }
             SideEffect::DespawnAtTile { idx, delay } => {
                 // maybe a bit inefficient but again idc
                 for (entity, piece) in piece_query.iter() {

@@ -1,7 +1,11 @@
 use bevy::{log::info, prelude::App, DefaultPlugins};
 
-use crate::{core::CorePlugin, graphics::GraphicsPlugin, input::InputPlugin, ui::UiPlugin};
+use crate::{
+    audio::InternalAudioPlugin, core::CorePlugin, graphics::GraphicsPlugin, input::InputPlugin,
+    ui::UiPlugin,
+};
 
+mod audio;
 mod core;
 mod graphics;
 mod input;
@@ -20,6 +24,7 @@ fn main() {
         InputPlugin,
         GraphicsPlugin,
         UiPlugin,
+        InternalAudioPlugin,
     ));
 
     info!(

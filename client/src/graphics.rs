@@ -1,4 +1,5 @@
 use bevy::{prelude::*, window::PrimaryWindow};
+use bevy_kira_audio::{Audio, AudioControl};
 use bevy_vector_shapes::{
     painter::ShapePainter,
     shapes::{DiscPainter, RectPainter, TrianglePainter},
@@ -6,6 +7,7 @@ use bevy_vector_shapes::{
 };
 
 use crate::{
+    audio::AudioFiles,
     core::{
         colours::{
             DEFAULT_GRID_BORDER, DEFAULT_GRID_HOVER_BORDER_INVALID,
@@ -178,14 +180,23 @@ fn draw_single_piece(painter: &mut ShapePainter, piece_type: &PieceType, scale: 
 fn despawn_system(
     mut commands: Commands,
     time: Res<Time>,
+    audio: Res<Audio>,
+    audio_files: Res<AudioFiles>,
     mut disable_input: ResMut<DisableInput>,
     despawn_items: Query<(Entity, &DespawnItem)>,
 ) {
     disable_input.0 = !despawn_items.is_empty();
 
+    let mut any_despawned = false;
+
     for (entity, item) in despawn_items.iter() {
         if item.despawn_time < time.elapsed_seconds() {
             commands.entity(entity).despawn();
+            any_despawned = true;
         }
+    }
+
+    if any_despawned {
+        audio.play(audio_files.despawn.clone()).with_volume(0.3);
     }
 }
