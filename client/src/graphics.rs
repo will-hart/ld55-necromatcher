@@ -48,6 +48,7 @@ impl Plugin for GraphicsPlugin {
 
 fn draw_grid(
     cursor_coords: Res<CursorWorldCoords>,
+    current_piece: Res<PlayingPiece>,
     state: Res<GameState>,
     mut painter: ShapePainter,
 ) {
@@ -62,6 +63,7 @@ fn draw_grid(
     for x in 0..COLS {
         for y in 0..ROWS {
             let coords = tile_coords(x, y);
+            painter.translate(Vec3::new(coords.min.x + 1., coords.min.y + 1., 0.));
 
             if xsel == x && ysel == y {
                 painter.color = if is_valid_placement_position {
@@ -69,12 +71,19 @@ fn draw_grid(
                 } else {
                     DEFAULT_GRID_HOVER_BORDER_INVALID
                 };
+
+                if is_valid_placement_position {
+                    let col = painter.color;
+                    painter.color = DEFAULT_GRID_BORDER;
+                    draw_single_piece(&mut painter, &current_piece.0, 1.0);
+                    painter.color = col;
+                }
             } else {
                 painter.color = DEFAULT_GRID_BORDER
             }
 
-            painter.translate(Vec3::new(coords.min.x + 1., coords.min.y + 1., 0.));
             painter.rect(Vec2::new(GRID_SIZE as f32 - 2., GRID_SIZE as f32 - 2.));
+
             painter.transform = pos;
         }
     }
