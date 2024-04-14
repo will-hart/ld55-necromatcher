@@ -1,5 +1,7 @@
 use bevy::log::{info, warn};
 
+use crate::core::{event::GameEvent, state::game_event_handler::StateEventHandler};
+
 use super::{GameState, Piece, PieceType};
 
 pub trait StateLevelLoader {
@@ -16,25 +18,49 @@ impl StateLevelLoader for GameState {
             warn!("Ignoring level loading request as {level_id} is greater than the length of the available LEVELS {}", Self::LEVELS.len());
             return;
         }
-        let ((num_tris, num_circles, num_squares), pieces) =
-            parse_level_file(Self::LEVELS[level_id]);
+        let ld = parse_level_file(Self::LEVELS[level_id]);
 
-        self.num_triangles = num_tris;
-        self.num_squares = num_squares;
-        self.num_circles = num_circles;
+        // clear existing
+        self.events.clear();
+        let _ = self.apply_event(GameEvent::SeedRng { seed: ld.seed });
 
-        for (idx, piece) in pieces.into_iter().enumerate() {
+        // update with new level data
+        self.num_triangles = ld.num_triangles;
+        self.num_squares = ld.num_squares;
+        self.num_circles = ld.num_circles;
+
+        for (idx, piece) in ld.pieces.into_iter().enumerate() {
             self.tiles[idx].piece = piece;
         }
 
-        info!("Loaded level, {num_tris}, {num_squares}, {num_circles}")
+        info!("Loaded level {level_id}");
     }
 }
 
-fn parse_level_file(data: &str) -> ((usize, usize, usize), Vec<Piece>) {
-    let pieces = data
-        .lines()
-        .skip(1)
+/// These files are included in the binary at compile time,
+/// I'm being a bit aggressive with asserts and expects here as it shouldn't matter
+fn parse_level_file(data: &str) -> LevelData {
+    let mut lines = data.lines();
+
+    let seed: u64 = lines
+        .next()
+        .unwrap()
+        .parse()
+        .expect("parse seed from level file");
+
+    let numbers = lines
+        .next()
+        .unwrap()
+        .split(',')
+        .map(|line| {
+            line.split(',')
+                .map(|item| item.parse::<usize>().expect("parse level to usize"))
+        })
+        .flatten()
+        .collect::<Vec<_>>();
+    debug_assert_eq!(numbers.len(), 3);
+
+    let pieces = lines
         .map(|line| {
             line.split(',')
                 .map(|i| match i {
@@ -55,16 +81,19 @@ fn parse_level_file(data: &str) -> ((usize, usize, usize), Vec<Piece>) {
         .collect::<Vec<_>>();
     debug_assert_eq!(pieces.len(), 64);
 
-    let numbers = data
-        .lines()
-        .take(1)
-        .map(|line| {
-            line.split(',')
-                .map(|item| item.parse::<usize>().expect("parse level to usize"))
-        })
-        .flatten()
-        .collect::<Vec<_>>();
-    debug_assert_eq!(numbers.len(), 3);
+    LevelData {
+        seed,
+        num_triangles: numbers[0],
+        num_circles: numbers[1],
+        num_squares: numbers[2],
+        pieces,
+    }
+}
 
-    ((numbers[0], numbers[1], numbers[2]), pieces)
+pub struct LevelData {
+    pub seed: u64,
+    pub num_triangles: usize,
+    pub num_squares: usize,
+    pub num_circles: usize,
+    pub pieces: Vec<Piece>,
 }

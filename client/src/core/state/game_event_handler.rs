@@ -158,7 +158,7 @@ impl StateEventHandler for GameState {
                     Ok(side_effects)
                 }
                 GameEvent::LoadLevel { level_id } => {
-                    self.load_level(*level_id);
+                    self.load_level(*level_id); // note this clears out events
                     self.events.push(game_event);
                     Ok(vec![SideEffect::FullRespawnTiles])
                 }
