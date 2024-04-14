@@ -39,6 +39,7 @@ pub enum SideEffect {
     RemoveGameOverCondition,
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn side_effect_handler(
     mut commands: Commands,
     mut events: EventReader<SideEffect>,

@@ -54,20 +54,18 @@ pub fn handle_piece_type(
         state_events.send(GameEvent::Reset);
     }
 
-    if !disable_input.0 {
-        if buttons.just_pressed(MouseButton::Left) {
-            let (x, y) = world_to_tile(cursor_coords.0).unwrap_or((usize::MAX, usize::MAX));
-            if x < usize::MAX && y < usize::MAX {
-                info!(
-                    "Requested piece placement at {x}, {y} - {:?}",
-                    playing_piece.0
-                );
-                state_events.send(GameEvent::PlacePlayerPiece {
-                    x,
-                    y,
-                    piece_type: playing_piece.0,
-                });
-            }
+    if !disable_input.0 && buttons.just_pressed(MouseButton::Left) {
+        let (x, y) = world_to_tile(cursor_coords.0).unwrap_or((usize::MAX, usize::MAX));
+        if x < usize::MAX && y < usize::MAX {
+            info!(
+                "Requested piece placement at {x}, {y} - {:?}",
+                playing_piece.0
+            );
+            state_events.send(GameEvent::PlacePlayerPiece {
+                x,
+                y,
+                piece_type: playing_piece.0,
+            });
         }
     }
 }

@@ -147,13 +147,12 @@ impl StateEventHandler for GameState {
                             }
 
                             // if we removed a red element, add it to capacity
-                            match self.tiles[idx].piece {
-                                Piece::Player1(pt) => match pt {
+                            if let Piece::Player1(pt) = self.tiles[idx].piece {
+                                match pt {
                                     PieceType::Square => self.num_squares += 1,
                                     PieceType::Circle => self.num_circles += 1,
                                     PieceType::Triangle => self.num_triangles += 1,
-                                },
-                                _ => {}
+                                }
                             }
 
                             self.tiles[idx].piece = Piece::Empty;

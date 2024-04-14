@@ -60,7 +60,7 @@ fn draw_grid(
         return;
     }
 
-    let pos = painter.transform.clone();
+    let pos = painter.transform;
 
     painter.thickness = 0.5;
     painter.hollow = false;
@@ -105,7 +105,7 @@ fn draw_current_piece(
     current_piece: Res<PlayingPiece>,
     window_query: Query<&Window, With<PrimaryWindow>>,
 ) {
-    let pos = painter.transform.clone();
+    let pos = painter.transform;
 
     painter.thickness = 0.5;
     painter.hollow = true;
@@ -137,7 +137,7 @@ fn draw_pieces(
     mut painter: ShapePainter,
     pieces: Query<(&GamePieceVisualisation, &AnimationState)>,
 ) {
-    let pos = painter.transform.clone();
+    let pos = painter.transform;
     painter.thickness = 1.;
     painter.hollow = true;
     painter.color = PLAYER_0_COLOUR;

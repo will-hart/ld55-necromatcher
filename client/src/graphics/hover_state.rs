@@ -73,6 +73,7 @@ pub fn update_animations(time: Res<Time>, mut animations: Query<&mut AnimationSt
     }
 }
 
+#[allow(clippy::type_complexity)]
 pub fn update_hover_state(
     mut commands: Commands,
     cursor_coords: Res<CursorWorldCoords>,

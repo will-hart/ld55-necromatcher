@@ -55,16 +55,15 @@ fn parse_level_file(data: &str) -> LevelData {
         .next()
         .unwrap()
         .split(',')
-        .map(|line| {
+        .flat_map(|line| {
             line.split(',')
                 .map(|item| item.parse::<usize>().expect("parse level to usize"))
         })
-        .flatten()
         .collect::<Vec<_>>();
     debug_assert_eq!(numbers.len(), 3);
 
     let pieces = lines
-        .map(|line| {
+        .flat_map(|line| {
             line.split(',')
                 .map(|i| match i {
                     "0" => Piece::Empty,
@@ -80,7 +79,6 @@ fn parse_level_file(data: &str) -> LevelData {
                 })
                 .collect::<Vec<_>>()
         })
-        .flatten()
         .collect::<Vec<_>>();
     debug_assert_eq!(pieces.len(), 64);
 

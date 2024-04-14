@@ -122,19 +122,13 @@ impl GameState {
         let selected_tile_exists = selected_tile.is_some();
 
         let selected_tile_is_occupied = selected_tile
-            .map(|t| match t.piece {
-                Piece::Empty => false,
-                _ => true,
-            })
+            .map(|t| !matches!(t.piece, Piece::Empty))
             .unwrap_or(false);
 
         let neighbour_contains_player_piece = self
             .get_neighbours(selected_x, selected_y, PieceType::Circle)
             .iter()
-            .any(|(nx, ny)| match self.tiles[tile_to_idx(*nx, *ny)].piece {
-                Piece::Player0(_) => true,
-                _ => false,
-            });
+            .any(|(nx, ny)| matches!(self.tiles[tile_to_idx(*nx, *ny)].piece, Piece::Player0(_)));
 
         selected_tile_exists && !selected_tile_is_occupied && neighbour_contains_player_piece
     }
@@ -143,19 +137,16 @@ impl GameState {
     pub fn count_red_cells(&self) -> usize {
         self.tiles
             .iter()
-            .filter(|t| match t.piece {
-                Piece::Player1(_) => true,
-                _ => false,
-            })
+            .filter(|t| matches!(t.piece, Piece::Player1(_)))
             .count()
     }
 
     /// Returns true if all red cells are defeated
     pub fn is_level_over(&self) -> bool {
-        !self.tiles.iter().any(|t| match t.piece {
-            Piece::Player1(_) => true,
-            _ => false,
-        })
+        !self
+            .tiles
+            .iter()
+            .any(|t| matches!(t.piece, Piece::Player1(_)))
     }
 
     /// Gets neighbouring cells for this tile piece at the given x/y tile coordinate
