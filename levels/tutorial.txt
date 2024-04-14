@@ -1,0 +1,11 @@
+TUTORIAL: You have a limited number of pieces to summon (see bottom right). Right click or 's' to switch which unit you're summoning. Left click to place (must be adjacent to another green piece). Match 3 or more in a row to remove creatures and harvest their souls. Clear the map to start the game!
+568456232457234
+0,1,1
+00,00,00,00,00,00,00,0
+00,00,00,00,00,00,00,0
+00,00,01,12,00,00,00,0
+00,00,02,00,12,00,00,0
+00,00,11,12,00,00,00,0
+00,00,11,00,00,00,00,0
+00,00,00,00,00,00,00,0
+00,00,00,00,00,00,00,0

@@ -232,6 +232,6 @@ fn despawn_system(
     }
 
     if any_despawned {
-        audio.play(audio_files.despawn.clone()).with_volume(0.3);
+        audio.play(audio_files.despawn.clone()).with_volume(0.1);
     }
 }

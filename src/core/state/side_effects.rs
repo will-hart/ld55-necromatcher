@@ -170,7 +170,7 @@ pub fn side_effect_handler(
                 if *load_another && state.current_level < NUM_LEVELS {
                     audio
                         .play(audio_files.level_complete.clone())
-                        .with_volume(0.5);
+                        .with_volume(0.2);
                     game_events.send(GameEvent::NextLevel);
                 } else {
                     warn!("I think thats game over, probably should implement something");

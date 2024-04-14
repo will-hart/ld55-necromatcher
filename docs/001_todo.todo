@@ -12,7 +12,7 @@ Core functionality for LD:
     This is a tricky one. I played around with a few idea but they didn't really work.
     Having random spawns made making levels difficult. I think for now leaning into it
     as a "puzzle match 3" works, however I think that weakens the theme a little.
-  - at least 4 levels
+  ✔ at least 4 levels @done(24-04-15 00:11)
 
   some basic sound effects:
     ✔ hit on place @done(24-04-14 16:30)
@@ -27,8 +27,8 @@ Core functionality for LD:
   ✔ Campaign story messages in each level @done(24-04-14 18:43)
   ✔ Splash / menu screen @done(24-04-14 20:41)
   ✔ actual sprites instead of shapes @done(24-04-14 22:40)
-  - auto push to itch
-  - LD page
+  ✔ auto push to itch @done(24-04-15 00:12)
+  ✔ LD page @done(24-04-15 00:12)
   
   Handle placing pieces:
     ✔ Show valid placement locations @done(24-04-13 16:09)
@@ -48,4 +48,4 @@ Nice to have:
   - Animation easing
   - particles on removal
   - combat results in chains of reactions / combos of pieces do different things
-  - background music
+  ✔ background music @done(24-04-15 00:28)

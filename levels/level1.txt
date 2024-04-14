@@ -1,11 +1,11 @@
 Oh no! The people of Pleasant Vale seem to be outside asking some questions about your little necromancy habit. They've gathered a small army outside your castle. There seem to be a lot of torches for some reason, and they're so noisy its keeping your skellies awake! I think its best you summon a few troops and go harvest their souls. Maybe they're just out there because they want to find out what being undead is like?
 31462346236
 4,2,1
-0,0,0,0,0,0,0,11
-0,0,0,0,0,0,12,12
-0,0,0,12,0,0,0,0
-0,0,0,0,0,0,0,0
-0,0,0,0,0,0,0,0
-99,99,99,0,99,99,99,99
-0,1,3,0,0,0,0,0
-0,2,3,0,0,0,0,0
+00,00,00,00,00,00,00,11
+00,00,00,00,00,00,12,12
+00,00,00,12,00,00,00,00
+00,00,00,00,00,00,00,00
+00,00,00,00,00,00,00,00
+99,99,99,00,99,99,99,99
+00,01,03,00,00,00,00,00
+00,02,03,00,00,00,00,00
