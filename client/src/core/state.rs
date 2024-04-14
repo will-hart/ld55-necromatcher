@@ -1,4 +1,4 @@
-use bevy::prelude::Resource;
+use bevy::{ecs::component::Component, prelude::Resource};
 
 use rand::{thread_rng, RngCore, SeedableRng};
 use rand_chacha::ChaCha20Rng;
@@ -17,25 +17,32 @@ pub struct PlayingPiece(pub PieceType);
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Default)]
 pub enum PieceType {
     #[default]
-    Square,
-    Circle,
-    Triangle,
+    Swordsman,
+    Hound,
+    Bowman,
+    Wall,
 }
 
 impl PieceType {
     pub fn toggle(self) -> Self {
         match self {
-            PieceType::Square => PieceType::Circle,
-            PieceType::Circle => PieceType::Triangle,
-            PieceType::Triangle => PieceType::Square,
+            PieceType::Swordsman => PieceType::Hound,
+            PieceType::Hound => PieceType::Bowman,
+            PieceType::Bowman => PieceType::Swordsman,
+            _ => self,
         }
     }
 }
+
+#[derive(Component)]
+pub struct Obstacle;
 
 #[derive(Debug, Copy, Clone)]
 pub enum Piece {
     /// No piece at all
     Empty,
+    /// An obstacle which blocks matches and placements and for now can't be destroyed
+    Obstacle(PieceType),
     /// A piece owned by the player
     Player0(PieceType),
     /// A piece owned by the computer
@@ -64,6 +71,8 @@ pub struct GameState {
     pub num_squares: usize,
     pub num_circles: usize,
 
+    pub level_message: String,
+
     current_level: usize,
 
     rng: ChaCha20Rng,
@@ -88,6 +97,7 @@ impl Default for GameState {
             rng: ChaCha20Rng::seed_from_u64(seed),
             events: vec![event],
             tiles,
+            level_message: String::new(),
             current_level: 0,
             num_triangles: 0,
             num_squares: 0,
@@ -100,9 +110,10 @@ impl GameState {
     /// Returns true if a piece of the given type can be placed
     pub fn has_capacity(&self, piece_type: PieceType) -> bool {
         (match piece_type {
-            PieceType::Square => self.num_squares,
-            PieceType::Circle => self.num_circles,
-            PieceType::Triangle => self.num_triangles,
+            PieceType::Swordsman => self.num_squares,
+            PieceType::Hound => self.num_circles,
+            PieceType::Bowman => self.num_triangles,
+            _ => 0,
         }) > 0
     }
 
@@ -126,7 +137,7 @@ impl GameState {
             .unwrap_or(false);
 
         let neighbour_contains_player_piece = self
-            .get_neighbours(selected_x, selected_y, PieceType::Circle)
+            .get_neighbours(selected_x, selected_y, PieceType::Hound)
             .iter()
             .any(|(nx, ny)| matches!(self.tiles[tile_to_idx(*nx, *ny)].piece, Piece::Player0(_)));
 
@@ -156,8 +167,8 @@ impl GameState {
         }
 
         match piece_type {
-            PieceType::Square => vec![(0isize, -1isize), (-1, 0), (1, 0), (0, 1)],
-            PieceType::Circle => vec![
+            PieceType::Swordsman => vec![(0isize, -1isize), (-1, 0), (1, 0), (0, 1)],
+            PieceType::Hound => vec![
                 (-1, -1),
                 (0, -1),
                 (1, -1),
@@ -167,7 +178,11 @@ impl GameState {
                 (0, 1),
                 (1, 1),
             ],
-            PieceType::Triangle => vec![(0, -1), (0, 1)],
+            PieceType::Bowman => vec![(0, -1), (0, 1)],
+            _ => {
+                // you're in the wrong place dude
+                return vec![];
+            }
         }
         .iter()
         .filter_map(|(dx, dy)| {
@@ -188,7 +203,7 @@ impl GameState {
 
         // check matches
         let mut expected: Option<PieceType> = match self.tiles[0].piece {
-            Piece::Empty => None,
+            Piece::Empty | Piece::Obstacle(_) => None,
             Piece::Player0(pt) => Some(pt),
             Piece::Player1(pt) => Some(pt),
         };
@@ -210,7 +225,7 @@ impl GameState {
 
                 // find the current piece type
                 let current_piece_type = match self.tiles[idx].piece {
-                    Piece::Empty => None,
+                    Piece::Empty | Piece::Obstacle(_) => None,
                     Piece::Player0(pt) => Some(pt),
                     Piece::Player1(pt) => Some(pt),
                 };
@@ -309,9 +324,9 @@ mod test {
     #[test]
     fn test_matches_horizontal_at_any_index() {
         let mut state = GameState::default();
-        state.tiles[1].piece = Piece::Player0(PieceType::Square);
-        state.tiles[2].piece = Piece::Player0(PieceType::Square);
-        state.tiles[3].piece = Piece::Player0(PieceType::Square);
+        state.tiles[1].piece = Piece::Player0(PieceType::Swordsman);
+        state.tiles[2].piece = Piece::Player0(PieceType::Swordsman);
+        state.tiles[3].piece = Piece::Player0(PieceType::Swordsman);
         assert_eq!(
             state.get_matches(),
             vec![Match::Horizontal {
@@ -324,11 +339,11 @@ mod test {
     #[test]
     fn test_matches_horizontal_more_than_3() {
         let mut state = GameState::default();
-        state.tiles[1].piece = Piece::Player0(PieceType::Square);
-        state.tiles[2].piece = Piece::Player0(PieceType::Square);
-        state.tiles[3].piece = Piece::Player0(PieceType::Square);
-        state.tiles[4].piece = Piece::Player0(PieceType::Square);
-        state.tiles[5].piece = Piece::Player0(PieceType::Square);
+        state.tiles[1].piece = Piece::Player0(PieceType::Swordsman);
+        state.tiles[2].piece = Piece::Player0(PieceType::Swordsman);
+        state.tiles[3].piece = Piece::Player0(PieceType::Swordsman);
+        state.tiles[4].piece = Piece::Player0(PieceType::Swordsman);
+        state.tiles[5].piece = Piece::Player0(PieceType::Swordsman);
         assert_eq!(
             state.get_matches(),
             vec![Match::Horizontal {
@@ -341,10 +356,10 @@ mod test {
     #[test]
     fn test_matches_horizontal_at_the_end_of_the_grid() {
         let mut state = GameState::default();
-        state.tiles[60].piece = Piece::Player0(PieceType::Square);
-        state.tiles[61].piece = Piece::Player0(PieceType::Square);
-        state.tiles[62].piece = Piece::Player0(PieceType::Square);
-        state.tiles[63].piece = Piece::Player0(PieceType::Square);
+        state.tiles[60].piece = Piece::Player0(PieceType::Swordsman);
+        state.tiles[61].piece = Piece::Player0(PieceType::Swordsman);
+        state.tiles[62].piece = Piece::Player0(PieceType::Swordsman);
+        state.tiles[63].piece = Piece::Player0(PieceType::Swordsman);
 
         assert_eq!(
             state.get_matches(),
@@ -358,10 +373,10 @@ mod test {
     #[test]
     fn test_matches_vertical_at_the_end_of_the_grid() {
         let mut state = GameState::default();
-        state.tiles[39].piece = Piece::Player0(PieceType::Square);
-        state.tiles[47].piece = Piece::Player0(PieceType::Square);
-        state.tiles[55].piece = Piece::Player0(PieceType::Square);
-        state.tiles[63].piece = Piece::Player0(PieceType::Square);
+        state.tiles[39].piece = Piece::Player0(PieceType::Swordsman);
+        state.tiles[47].piece = Piece::Player0(PieceType::Swordsman);
+        state.tiles[55].piece = Piece::Player0(PieceType::Swordsman);
+        state.tiles[63].piece = Piece::Player0(PieceType::Swordsman);
 
         assert_eq!(
             state.get_matches(),
@@ -375,18 +390,18 @@ mod test {
     #[test]
     fn test_doesnt_match_horizontal_over_row_boundary() {
         let mut state = GameState::default();
-        state.tiles[6].piece = Piece::Player0(PieceType::Square);
-        state.tiles[7].piece = Piece::Player0(PieceType::Square);
-        state.tiles[8].piece = Piece::Player0(PieceType::Square);
+        state.tiles[6].piece = Piece::Player0(PieceType::Swordsman);
+        state.tiles[7].piece = Piece::Player0(PieceType::Swordsman);
+        state.tiles[8].piece = Piece::Player0(PieceType::Swordsman);
         assert_eq!(state.get_matches(), vec![]);
     }
 
     #[test]
     fn test_matches_horizontal_at_row_start() {
         let mut state = GameState::default();
-        state.tiles[8].piece = Piece::Player0(PieceType::Square);
-        state.tiles[9].piece = Piece::Player0(PieceType::Square);
-        state.tiles[10].piece = Piece::Player0(PieceType::Square);
+        state.tiles[8].piece = Piece::Player0(PieceType::Swordsman);
+        state.tiles[9].piece = Piece::Player0(PieceType::Swordsman);
+        state.tiles[10].piece = Piece::Player0(PieceType::Swordsman);
         assert_eq!(
             state.get_matches(),
             vec![Match::Horizontal {
@@ -400,7 +415,7 @@ mod test {
     fn test_matches_horizontal_at_row_end() {
         let mut state = GameState::default();
         for idx in 5..=7 {
-            state.tiles[idx].piece = Piece::Player0(PieceType::Circle);
+            state.tiles[idx].piece = Piece::Player0(PieceType::Hound);
         }
         assert_eq!(
             state.get_matches(),
@@ -415,7 +430,7 @@ mod test {
     fn test_multiple_horizontal_matches() {
         let mut state = GameState::default();
         for idx in 4..=10 {
-            state.tiles[idx].piece = Piece::Player0(PieceType::Triangle);
+            state.tiles[idx].piece = Piece::Player0(PieceType::Bowman);
         }
 
         assert_eq!(
@@ -437,7 +452,7 @@ mod test {
     fn test_multiple_horizontal_and_vertical_matches() {
         let mut state = GameState::default();
         for idx in [4, 5, 6, 13, 21] {
-            state.tiles[idx].piece = Piece::Player0(PieceType::Triangle);
+            state.tiles[idx].piece = Piece::Player0(PieceType::Bowman);
         }
 
         assert_eq!(
@@ -458,9 +473,9 @@ mod test {
     #[test]
     fn test_matches_vertical_at_any_index() {
         let mut state = GameState::default();
-        state.tiles[17].piece = Piece::Player0(PieceType::Square);
-        state.tiles[25].piece = Piece::Player0(PieceType::Square);
-        state.tiles[33].piece = Piece::Player0(PieceType::Square);
+        state.tiles[17].piece = Piece::Player0(PieceType::Swordsman);
+        state.tiles[25].piece = Piece::Player0(PieceType::Swordsman);
+        state.tiles[33].piece = Piece::Player0(PieceType::Swordsman);
         assert_eq!(
             state.get_matches(),
             vec![Match::Vertical {
@@ -473,11 +488,11 @@ mod test {
     #[test]
     fn test_matches_vertical_more_than_3() {
         let mut state = GameState::default();
-        state.tiles[9].piece = Piece::Player0(PieceType::Square);
-        state.tiles[17].piece = Piece::Player0(PieceType::Square);
-        state.tiles[25].piece = Piece::Player0(PieceType::Square);
-        state.tiles[33].piece = Piece::Player0(PieceType::Square);
-        state.tiles[41].piece = Piece::Player0(PieceType::Square);
+        state.tiles[9].piece = Piece::Player0(PieceType::Swordsman);
+        state.tiles[17].piece = Piece::Player0(PieceType::Swordsman);
+        state.tiles[25].piece = Piece::Player0(PieceType::Swordsman);
+        state.tiles[33].piece = Piece::Player0(PieceType::Swordsman);
+        state.tiles[41].piece = Piece::Player0(PieceType::Swordsman);
 
         assert_eq!(
             state.get_matches(),
@@ -491,24 +506,24 @@ mod test {
     #[test]
     fn test_doesnt_match_vertical_over_column_boundary() {
         let mut state = GameState::default();
-        state.tiles[52].piece = Piece::Player0(PieceType::Square);
-        state.tiles[60].piece = Piece::Player0(PieceType::Square);
-        state.tiles[61].piece = Piece::Player0(PieceType::Square);
+        state.tiles[52].piece = Piece::Player0(PieceType::Swordsman);
+        state.tiles[60].piece = Piece::Player0(PieceType::Swordsman);
+        state.tiles[61].piece = Piece::Player0(PieceType::Swordsman);
         assert_eq!(state.get_matches(), vec![]);
 
         let mut state = GameState::default();
-        state.tiles[48].piece = Piece::Player0(PieceType::Square);
-        state.tiles[56].piece = Piece::Player0(PieceType::Square);
-        state.tiles[1].piece = Piece::Player0(PieceType::Square);
+        state.tiles[48].piece = Piece::Player0(PieceType::Swordsman);
+        state.tiles[56].piece = Piece::Player0(PieceType::Swordsman);
+        state.tiles[1].piece = Piece::Player0(PieceType::Swordsman);
         assert_eq!(state.get_matches(), vec![]);
     }
 
     #[test]
     fn test_matches_vertical_at_col_start() {
         let mut state = GameState::default();
-        state.tiles[1].piece = Piece::Player0(PieceType::Square);
-        state.tiles[9].piece = Piece::Player0(PieceType::Square);
-        state.tiles[17].piece = Piece::Player0(PieceType::Square);
+        state.tiles[1].piece = Piece::Player0(PieceType::Swordsman);
+        state.tiles[9].piece = Piece::Player0(PieceType::Swordsman);
+        state.tiles[17].piece = Piece::Player0(PieceType::Swordsman);
         assert_eq!(
             state.get_matches(),
             vec![Match::Vertical {
@@ -522,7 +537,7 @@ mod test {
     fn test_matches_vertical_at_col_end() {
         let mut state = GameState::default();
         for idx in [46, 54, 62] {
-            state.tiles[idx].piece = Piece::Player0(PieceType::Circle);
+            state.tiles[idx].piece = Piece::Player0(PieceType::Hound);
         }
         assert_eq!(
             state.get_matches(),
@@ -537,7 +552,7 @@ mod test {
     fn test_multiple_vertical_matches() {
         let mut state = GameState::default();
         for idx in [22, 30, 38, 46, 17, 25, 33] {
-            state.tiles[idx].piece = Piece::Player0(PieceType::Triangle);
+            state.tiles[idx].piece = Piece::Player0(PieceType::Bowman);
         }
 
         assert_eq!(

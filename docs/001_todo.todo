@@ -8,16 +8,27 @@ Core functionality for LD:
   ✔ store level on state and increment when each level is complete @done(24-04-14 15:25)
   ✔ Game over state - after all levels are done @started(24-04-14 15:27) @done(24-04-14 15:49) @lasted(22m20s)
   ✔ restart from game over state back to level 1 @done(24-04-14 15:58)
-  - enemy summon side effects
+  ✘ enemy summon side effects @cancelled(24-04-14 17:47)
+    This is a tricky one. I played around with a few idea but they didn't really work.
+    Having random spawns made making levels difficult. I think for now leaning into it
+    as a "puzzle match 3" works, however I think that weakens the theme a little.
   - at least 4 levels
+
   some basic sound effects:
     ✔ hit on place @done(24-04-14 16:30)
     ✔ ping on despawn @done(24-04-14 16:30)
     ✔ Level complete @done(24-04-14 16:58)
-    - rawr on enemy summon
-  - CI + push to itch
+    ✘ rawr on enemy summon @cancelled(24-04-14 17:49)
+      Cancelled as this is being abandoned as per "enemy summon side effects" above
+  
+  ✔ CI @done(24-04-14 17:49)
+  ✔ Walls / other obstacle pieces @done(24-04-14 18:19)
+    This can add some complexity
+  ✔ Campaign story messages in each level @done(24-04-14 18:43)
+  ✔ Splash / menu screen @done(24-04-14 20:41)
+  ✔ actual sprites instead of shapes @done(24-04-14 22:40)
+  - auto push to itch
   - LD page
-  - Come up with a name
   
   Handle placing pieces:
     ✔ Show valid placement locations @done(24-04-13 16:09)
@@ -25,15 +36,16 @@ Core functionality for LD:
   
   Handle "combat":
     ✔ placing piece results in combat @done(24-04-14 01:02)
-    - combat results in chains of reactions
-    - animate reactions piece by piece
-    - placement results in "summoning" new pieces
+    ✔ animate reactions piece by piece @done(24-04-14 17:49)
+    ✘ placement results in "summoning" new pieces @cancelled(24-04-14 17:50)
 
 Infra:
   ✔ CI workflows  (untested) @done(24-04-13 12:15)
+  ✔ Come up with a name @done(24-04-14 20:42)
 
 Nice to have:
   - Chained animation targets, so we can do e.g. pop in and then out
   - Animation easing
   - particles on removal
-  - actual sprites instead of shapes
+  - combat results in chains of reactions / combos of pieces do different things
+  - background music

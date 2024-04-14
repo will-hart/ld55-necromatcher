@@ -32,6 +32,8 @@ impl StateLevelLoader for GameState {
         self.num_squares = ld.num_squares;
         self.num_circles = ld.num_circles;
 
+        self.level_message = ld.intro;
+
         for (idx, piece) in ld.pieces.into_iter().enumerate() {
             self.tiles[idx].piece = piece;
         }
@@ -44,6 +46,8 @@ impl StateLevelLoader for GameState {
 /// I'm being a bit aggressive with asserts and expects here as it shouldn't matter
 fn parse_level_file(data: &str) -> LevelData {
     let mut lines = data.lines();
+
+    let intro = lines.next().unwrap().to_owned();
 
     let seed: u64 = lines
         .next()
@@ -67,14 +71,17 @@ fn parse_level_file(data: &str) -> LevelData {
             line.split(',')
                 .map(|i| match i {
                     "0" => Piece::Empty,
-                    "1" => Piece::Player0(PieceType::Circle),
-                    "2" => Piece::Player0(PieceType::Square),
-                    "3" => Piece::Player0(PieceType::Triangle),
-                    "11" => Piece::Player1(PieceType::Circle),
-                    "12" => Piece::Player1(PieceType::Square),
-                    "13" => Piece::Player1(PieceType::Triangle),
+                    "1" => Piece::Player0(PieceType::Hound),
+                    "2" => Piece::Player0(PieceType::Swordsman),
+                    "3" => Piece::Player0(PieceType::Bowman),
+                    "11" => Piece::Player1(PieceType::Hound),
+                    "12" => Piece::Player1(PieceType::Swordsman),
+                    "13" => Piece::Player1(PieceType::Bowman),
+                    "99" => Piece::Obstacle(PieceType::Wall),
                     v => {
-                        panic!("Failed to load text file - found {v}, expected 0,1,2,3,11,12 or 13")
+                        panic!(
+                            "Failed to load text file - found {v}, expected 0,1,2,3,11,12,13 or 99"
+                        )
                     }
                 })
                 .collect::<Vec<_>>()
@@ -84,6 +91,7 @@ fn parse_level_file(data: &str) -> LevelData {
 
     LevelData {
         seed,
+        intro,
         num_triangles: numbers[0],
         num_circles: numbers[1],
         num_squares: numbers[2],
@@ -92,6 +100,7 @@ fn parse_level_file(data: &str) -> LevelData {
 }
 
 pub struct LevelData {
+    pub intro: String,
     pub seed: u64,
     pub num_triangles: usize,
     pub num_squares: usize,

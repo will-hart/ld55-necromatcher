@@ -1,31 +1,24 @@
 use bevy::{prelude::*, window::PrimaryWindow};
 use bevy_kira_audio::{Audio, AudioControl};
-use bevy_vector_shapes::{
-    painter::ShapePainter,
-    shapes::{DiscPainter, RectPainter, TrianglePainter},
-    Shape2dPlugin,
-};
+use bevy_vector_shapes::{painter::ShapePainter, shapes::RectPainter, Shape2dPlugin};
 
 use crate::{
-    audio::AudioFiles,
     core::{
         colours::{
             DEFAULT_GRID_BORDER, DEFAULT_GRID_HOVER_BORDER_INVALID,
             DEFAULT_GRID_HOVER_BORDER_VALID, PLAYER_0_COLOUR, PLAYER_1_COLOUR,
         },
         state::{side_effects::GameOverDude, GameState, PieceType, PlayingPiece},
-        utils::{idx_to_tile, tile_coords, world_to_tile},
+        utils::{tile_coords, world_to_tile},
         COLS, GRID_SIZE, ROWS,
     },
     input::{CursorWorldCoords, DisableInput},
+    loaders::{AudioFiles, SpritesheetFiles},
+    AppState,
 };
 
-use self::{
-    hover_state::AnimationState,
-    piece_visualisation::{DespawnItem, GamePieceVisualisation},
-};
+use self::piece_visualisation::DespawnItem;
 
-pub mod hover_state;
 pub mod piece_visualisation;
 
 pub const SHAPE_SIZE: f32 = GRID_SIZE as f32 / 8.;
@@ -34,17 +27,21 @@ pub struct GraphicsPlugin;
 
 impl Plugin for GraphicsPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(Shape2dPlugin::default()).add_systems(
-            Update,
-            (
-                draw_grid,
-                draw_pieces,
-                draw_current_piece,
-                despawn_system,
-                hover_state::update_animations,
-                hover_state::update_hover_state,
-            ),
-        );
+        app.add_plugins(Shape2dPlugin::default())
+            .add_systems(
+                OnEnter(AppState::Game),
+                (spawn_current_piece_icons, spawn_hover_icon_indicator),
+            )
+            .add_systems(
+                Update,
+                (
+                    draw_grid,
+                    despawn_system,
+                    update_current_piece_icon,
+                    move_hover_icon_indicator,
+                )
+                    .run_if(in_state(AppState::Game)),
+            );
     }
 }
 
@@ -63,7 +60,7 @@ fn draw_grid(
     let pos = painter.transform;
 
     painter.thickness = 0.5;
-    painter.hollow = false;
+    painter.hollow = true;
 
     let (xsel, ysel) = world_to_tile(cursor_coords.0).unwrap_or((usize::MAX, usize::MAX));
     let is_valid_placement_position = state.is_valid_placement_position(xsel, ysel);
@@ -80,15 +77,6 @@ fn draw_grid(
                 } else {
                     DEFAULT_GRID_HOVER_BORDER_INVALID
                 };
-
-                if is_valid_placement_position {
-                    let col = painter.color;
-                    painter.color = DEFAULT_GRID_BORDER;
-                    painter.translate(Vec3::new(0.0, 0.0, 0.5));
-                    draw_single_piece(&mut painter, &current_piece.0, 1.0);
-                    painter.translate(Vec3::new(0.0, 0.0, -0.5));
-                    painter.color = col;
-                }
             } else {
                 painter.color = DEFAULT_GRID_BORDER
             }
@@ -100,80 +88,127 @@ fn draw_grid(
     }
 }
 
-fn draw_current_piece(
-    mut painter: ShapePainter,
-    current_piece: Res<PlayingPiece>,
+#[derive(Component)]
+pub struct CurrentPieceIcon(pub PieceType);
+
+fn spawn_current_piece_icons(
+    mut commands: Commands,
+    spritesheets: Res<SpritesheetFiles>,
+    mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
     window_query: Query<&Window, With<PrimaryWindow>>,
 ) {
-    let pos = painter.transform;
+    let layout = TextureAtlasLayout::from_grid(Vec2::new(32.0, 32.0), 13, 1, None, None);
+    let layout = texture_atlas_layouts.add(layout);
 
-    painter.thickness = 0.5;
-    painter.hollow = true;
+    let window = window_query.single();
 
-    for (idx, piece) in [PieceType::Triangle, PieceType::Circle, PieceType::Square]
+    [PieceType::Bowman, PieceType::Hound, PieceType::Swordsman]
         .iter()
         .enumerate()
-    {
-        painter.color = if *piece == current_piece.0 {
-            PLAYER_0_COLOUR
-        } else {
-            DEFAULT_GRID_HOVER_BORDER_INVALID
-        };
+        .for_each(|(idx, pt)| {
+            let first = match pt {
+                PieceType::Swordsman => 2,
+                PieceType::Hound => 4,
+                PieceType::Bowman => 0,
+                _ => 0,
+            };
 
-        let window = window_query.single();
-        painter.translate(Vec3::new(
-            -0.5 * window.width() + 2. * SHAPE_SIZE,
-            -0.5 * window.height() + 2. * SHAPE_SIZE + idx as f32 * 3. * SHAPE_SIZE,
-            0.0,
-        ));
-
-        draw_single_piece(&mut painter, piece, 1.0);
-
-        painter.transform = pos;
-    }
+            commands.spawn((
+                SpriteSheetBundle {
+                    texture: spritesheets.main_sheet.clone(),
+                    atlas: TextureAtlas {
+                        layout: layout.clone(),
+                        index: first,
+                    },
+                    transform: Transform::from_translation(Vec3::new(
+                        -0.5 * window.width() + 2. * SHAPE_SIZE,
+                        -0.5 * window.height() + 2. * SHAPE_SIZE + idx as f32 * 3. * SHAPE_SIZE,
+                        0.0,
+                    ))
+                    .with_scale(Vec3::new(0.5, 0.5, 1.0)),
+                    sprite: Sprite {
+                        color: Color::WHITE,
+                        ..default()
+                    },
+                    ..default()
+                },
+                CurrentPieceIcon(*pt),
+            ));
+        });
 }
 
-fn draw_pieces(
-    mut painter: ShapePainter,
-    pieces: Query<(&GamePieceVisualisation, &AnimationState)>,
+fn update_current_piece_icon(
+    current_piece: Res<PlayingPiece>,
+    mut icons: Query<(&mut Sprite, &CurrentPieceIcon)>,
 ) {
-    let pos = painter.transform;
-    painter.thickness = 1.;
-    painter.hollow = true;
-    painter.color = PLAYER_0_COLOUR;
-
-    for (piece, animation) in pieces.iter() {
-        let (tile_x, tile_y) = idx_to_tile(piece.idx);
-        let world_coords = tile_coords(tile_x, tile_y);
-        painter.translate(world_coords.min.extend(0.5));
-
-        painter.color = if piece.is_player_owned {
+    for (mut icon, piece) in icons.iter_mut() {
+        icon.color = if piece.0 == current_piece.0 {
             PLAYER_0_COLOUR
         } else {
             PLAYER_1_COLOUR
         };
-
-        draw_single_piece(&mut painter, &piece.piece_type, animation.value());
-
-        painter.transform = pos;
     }
 }
 
-fn draw_single_piece(painter: &mut ShapePainter, piece_type: &PieceType, scale: f32) {
-    match piece_type {
-        PieceType::Square => {
-            painter.rect(Vec2::splat(2. * scale * SHAPE_SIZE));
-        }
-        PieceType::Circle => {
-            painter.circle(scale * SHAPE_SIZE);
-        }
-        PieceType::Triangle => {
-            painter.triangle(
-                Vec2::new(0., scale * SHAPE_SIZE),
-                Vec2::new(scale * SHAPE_SIZE, scale * -SHAPE_SIZE),
-                Vec2::new(scale * -SHAPE_SIZE, scale * -SHAPE_SIZE),
-            );
-        }
+#[derive(Component)]
+pub struct HoverIconIndicator;
+
+pub fn spawn_hover_icon_indicator(
+    mut commands: Commands,
+    spritesheets: Res<SpritesheetFiles>,
+    mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
+) {
+    let layout = TextureAtlasLayout::from_grid(Vec2::new(32.0, 32.0), 13, 1, None, None);
+    let layout = texture_atlas_layouts.add(layout);
+
+    commands.spawn((
+        SpriteSheetBundle {
+            texture: spritesheets.main_sheet.clone(),
+            atlas: TextureAtlas {
+                layout: layout.clone(),
+                index: 0,
+            },
+            visibility: Visibility::Hidden,
+            sprite: Sprite {
+                color: Color::GRAY,
+                ..default()
+            },
+            ..default()
+        },
+        HoverIconIndicator,
+    ));
+}
+
+pub fn move_hover_icon_indicator(
+    cursor_position: Res<CursorWorldCoords>,
+    current_piece: Res<PlayingPiece>,
+    mut icons: Query<
+        (&mut Visibility, &mut TextureAtlas, &mut Transform),
+        With<HoverIconIndicator>,
+    >,
+) {
+    let index = match current_piece.0 {
+        PieceType::Swordsman => 2,
+        PieceType::Hound => 4,
+        PieceType::Bowman => 0,
+        PieceType::Wall => 0,
+    };
+
+    let (x, y) = world_to_tile(cursor_position.0).unwrap_or((usize::MAX, usize::MAX));
+    let location = if x == usize::MAX || y == usize::MAX {
+        tile_coords(0, 0)
+    } else {
+        tile_coords(x, y)
+    };
+
+    for (mut visibility, mut atlas, mut tx) in icons.iter_mut() {
+        *visibility = if x == usize::MAX || y == usize::MAX {
+            Visibility::Hidden
+        } else {
+            Visibility::Visible
+        };
+        atlas.index = index;
+        tx.translation = location.min.extend(0.5);
     }
 }
 
