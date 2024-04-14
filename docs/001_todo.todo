@@ -24,10 +24,11 @@ Core functionality for LD:
   ✔ CI @done(24-04-14 17:49)
   ✔ Walls / other obstacle pieces @done(24-04-14 18:19)
     This can add some complexity
-  - Campaign story messages in each level
+  ✔ Campaign story messages in each level @done(24-04-14 18:43)
   - Splash / menu screen
   - auto push to itch
   - LD page
+  - actual sprites instead of shapes
   
   Handle placing pieces:
     ✔ Show valid placement locations @done(24-04-13 16:09)
@@ -46,5 +47,4 @@ Nice to have:
   - Chained animation targets, so we can do e.g. pop in and then out
   - Animation easing
   - particles on removal
-  - actual sprites instead of shapes
   - combat results in chains of reactions / combos of pieces do different things
