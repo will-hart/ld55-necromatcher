@@ -113,6 +113,8 @@ pub fn side_effect_handler(
                 }
             }
             SideEffect::GameOver { load_another } => {
+                state.level_message = String::new();
+
                 if *load_another && state.current_level < NUM_LEVELS {
                     audio
                         .play(audio_files.level_complete.clone())

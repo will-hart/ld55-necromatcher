@@ -32,6 +32,8 @@ impl StateLevelLoader for GameState {
         self.num_squares = ld.num_squares;
         self.num_circles = ld.num_circles;
 
+        self.level_message = ld.intro;
+
         for (idx, piece) in ld.pieces.into_iter().enumerate() {
             self.tiles[idx].piece = piece;
         }
@@ -44,6 +46,8 @@ impl StateLevelLoader for GameState {
 /// I'm being a bit aggressive with asserts and expects here as it shouldn't matter
 fn parse_level_file(data: &str) -> LevelData {
     let mut lines = data.lines();
+
+    let intro = lines.next().unwrap().to_owned();
 
     let seed: u64 = lines
         .next()
@@ -87,6 +91,7 @@ fn parse_level_file(data: &str) -> LevelData {
 
     LevelData {
         seed,
+        intro,
         num_triangles: numbers[0],
         num_circles: numbers[1],
         num_squares: numbers[2],
@@ -95,6 +100,7 @@ fn parse_level_file(data: &str) -> LevelData {
 }
 
 pub struct LevelData {
+    pub intro: String,
     pub seed: u64,
     pub num_triangles: usize,
     pub num_squares: usize,

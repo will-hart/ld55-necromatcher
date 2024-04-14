@@ -93,15 +93,20 @@ fn spawn_ui(mut commands: Commands) {
     let mut header_text_style = text_style.clone();
     header_text_style.font_size = 24.;
 
+    let mut intro_style = text_style.clone();
+    intro_style.color = Color::GRAY;
+
     commands.spawn((
         TextBundle::from_sections([
             TextSection::new("Level 1", header_text_style),
-            TextSection::new("\nMatch    red tiles to win!", text_style.clone()),
+            TextSection::new("...", intro_style),
+            TextSection::new("\n\nHarvest    red tiles to win!", text_style.clone()),
         ])
         .with_style(Style {
             position_type: PositionType::Absolute,
             top: Val::Px(5.),
             left: Val::Px(5.),
+            right: Val::Px(10.),
             ..default()
         }),
         GameUi,
@@ -121,10 +126,16 @@ fn update_level_header_text(
             "Game Over!".to_owned()
         };
 
-        header.sections[1].value = format!(
-            "\nHarvest {} more red souls to win",
-            state.count_red_cells()
-        );
+        header.sections[1].value = format!("\n{}", state.level_message);
+
+        header.sections[2].value = if state.level_message.is_empty() {
+            String::new()
+        } else {
+            format!(
+                "\n\nHarvest {} more red souls to win",
+                state.count_red_cells()
+            )
+        };
     }
 }
 
@@ -159,7 +170,7 @@ fn update_help_text(
 ) {
     for mut text in pieces.iter_mut() {
         text.sections[0].value = if state.is_level_over() {
-            String::from("YOU WIN!\n Hit 'r' to reset")
+            String::from("YOU WIN!\n Hit 'r' to start again")
         } else {
             "'s' to change summoned shape\n(or right click)\n\n'r' to reset level\n\nMatch 3 in a row to destroy\n\nSummon next to green pieces only\n\nMatch red pieces to harvest souls".to_owned()
         };

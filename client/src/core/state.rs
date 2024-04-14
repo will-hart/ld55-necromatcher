@@ -71,6 +71,8 @@ pub struct GameState {
     pub num_squares: usize,
     pub num_circles: usize,
 
+    pub level_message: String,
+
     current_level: usize,
 
     rng: ChaCha20Rng,
@@ -95,6 +97,7 @@ impl Default for GameState {
             rng: ChaCha20Rng::seed_from_u64(seed),
             events: vec![event],
             tiles,
+            level_message: String::new(),
             current_level: 0,
             num_triangles: 0,
             num_squares: 0,
