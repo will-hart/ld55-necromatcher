@@ -11,7 +11,7 @@ use crate::{
             DEFAULT_GRID_BORDER, DEFAULT_GRID_HOVER_BORDER_INVALID,
             DEFAULT_GRID_HOVER_BORDER_VALID, PLAYER_0_COLOUR, PLAYER_1_COLOUR,
         },
-        state::{GameState, PieceType, PlayingPiece},
+        state::{side_effects::GameOverDude, GameState, PieceType, PlayingPiece},
         utils::{idx_to_tile, tile_coords, world_to_tile},
         COLS, GRID_SIZE, ROWS,
     },
@@ -52,7 +52,12 @@ fn draw_grid(
     state: Res<GameState>,
     disable_input: Res<DisableInput>,
     mut painter: ShapePainter,
+    game_over_query: Query<Entity, With<GameOverDude>>,
 ) {
+    if !game_over_query.is_empty() {
+        return;
+    }
+
     let pos = painter.transform.clone();
 
     painter.thickness = 0.5;

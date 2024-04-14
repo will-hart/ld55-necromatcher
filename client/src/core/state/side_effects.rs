@@ -13,6 +13,10 @@ use crate::{
 
 use super::{GameState, PieceType};
 
+/// Spawned when the game is over, dude
+#[derive(Component)]
+pub struct GameOverDude;
+
 #[derive(Event, Debug, Clone, Copy)]
 pub enum SideEffect {
     /// Spawn a visual entity at the given tile. Includes the piece
@@ -29,6 +33,8 @@ pub enum SideEffect {
     FullRespawnTiles,
     /// The game is over
     GameOver { load_another: bool },
+    /// Undo the game over state
+    RemoveGameOverCondition,
 }
 
 pub fn side_effect_handler(
@@ -37,6 +43,7 @@ pub fn side_effect_handler(
     mut game_events: EventWriter<GameEvent>,
     time: Res<Time>,
     state: Res<GameState>,
+    game_overs: Query<Entity, With<GameOverDude>>,
     piece_query: Query<(Entity, &GamePieceVisualisation)>,
     mut animations: Query<&mut AnimationState, With<GamePieceVisualisation>>,
 ) {
@@ -98,6 +105,16 @@ pub fn side_effect_handler(
                     game_events.send(GameEvent::NextLevel);
                 } else {
                     warn!("I think thats game over, probably should implement something");
+                    commands.spawn(GameOverDude);
+
+                    for (entity, _) in piece_query.iter() {
+                        commands.entity(entity).despawn();
+                    }
+                }
+            }
+            SideEffect::RemoveGameOverCondition => {
+                for entity in game_overs.iter() {
+                    commands.entity(entity).despawn();
                 }
             }
         }

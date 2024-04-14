@@ -184,13 +184,23 @@ impl StateEventHandler for GameState {
                     Ok(vec![SideEffect::FullRespawnTiles])
                 }
                 GameEvent::Reset => {
-                    // clear existing
-                    self.events.clear();
-
-                    self.load_level(0);
-                    self.current_level = 0;
+                    // if we're at the last level, go back to level 1, otherwise just reset
                     self.events.push(game_event);
-                    Ok(vec![SideEffect::FullRespawnTiles])
+
+                    if self.current_level + 1 == NUM_LEVELS {
+                        // clear existing
+                        self.events.clear();
+                        self.load_level(0);
+                        self.current_level = 0;
+
+                        Ok(vec![
+                            SideEffect::FullRespawnTiles,
+                            SideEffect::RemoveGameOverCondition,
+                        ])
+                    } else {
+                        self.load_level(self.current_level);
+                        Ok(vec![SideEffect::FullRespawnTiles])
+                    }
                 }
             },
             Err(e) => {

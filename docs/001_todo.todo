@@ -6,8 +6,8 @@ Core functionality for LD:
   ✔ include seed in level @done(24-04-14 13:32)
   ✔ disable input while side effects are processing @done(24-04-14 13:37)
   ✔ store level on state and increment when each level is complete @done(24-04-14 15:25)
-  - Game over state - after all levels are done
-  - restart from game over state back to level 1
+  ✔ Game over state - after all levels are done @started(24-04-14 15:27) @done(24-04-14 15:49) @lasted(22m20s)
+  ✔ restart from game over state back to level 1 @done(24-04-14 15:58)
   - enemy summon side effects
   - at least 4 levels
   some basic sound effects:

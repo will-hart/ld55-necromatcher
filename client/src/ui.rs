@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
 use crate::{
-    core::state::{GameState, PieceType},
+    core::state::{side_effects::GameOverDude, GameState, PieceType},
     graphics::SHAPE_SIZE,
 };
 
@@ -111,10 +111,15 @@ fn spawn_ui(mut commands: Commands) {
 
 fn update_level_header_text(
     state: Res<GameState>,
+    game_over: Query<Entity, With<GameOverDude>>,
     mut header_text: Query<&mut Text, With<CurrentLevelText>>,
 ) {
     for mut header in header_text.iter_mut() {
-        header.sections[0].value = format!("Level {}", state.get_current_level());
+        header.sections[0].value = if game_over.is_empty() {
+            format!("Level {}", state.get_current_level())
+        } else {
+            "Game Over!".to_owned()
+        };
     }
 }
 
