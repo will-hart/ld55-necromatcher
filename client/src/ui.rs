@@ -108,7 +108,7 @@ fn update_red_pieces_left_ui(
             String::from("YOU WIN!\n Hit 'r' to reset")
         } else {
             format!(
-            "Destroy {} more red enemies\nRight click or 's' to change\nsummoned shape\n\nMatch 3 in a row to destroy",
+            "Destroy {} more red enemies\n's' to change summoned shape\n'r' to reset level\n\nMatch 3 in a row to destroy",
             state.count_red_cells()
         )
         };
