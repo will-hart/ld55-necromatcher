@@ -8,12 +8,14 @@ pub trait StateLevelLoader {
     fn load_level(&mut self, level_id: usize);
 }
 
-pub const NUM_LEVELS: usize = 2;
+pub const NUM_LEVELS: usize = 4;
 
 impl GameState {
     pub const LEVELS: [&'static str; NUM_LEVELS] = [
-        include_str!("../../../../levels/level1.txt"),
-        include_str!("../../../../levels/level2.txt"),
+        include_str!("../../../levels/level1.txt"),
+        include_str!("../../../levels/level2.txt"),
+        include_str!("../../../levels/level3.txt"),
+        include_str!("../../../levels/level4.txt"),
     ];
 }
 
