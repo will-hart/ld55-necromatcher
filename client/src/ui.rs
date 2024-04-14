@@ -3,20 +3,25 @@ use bevy::prelude::*;
 use crate::{
     core::state::{side_effects::GameOverDude, GameState, PieceType, PlayingPiece},
     graphics::SHAPE_SIZE,
+    AppState,
 };
 
 pub struct UiPlugin;
 
 impl Plugin for UiPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, spawn_ui).add_systems(
-            Update,
-            (
-                update_available_items_ui,
-                update_help_text,
-                update_level_header_text,
-            ),
-        );
+        app.add_systems(OnEnter(AppState::Menu), spawn_menu_ui)
+            .add_systems(OnExit(AppState::Menu), despawn_menu_ui)
+            .add_systems(OnEnter(AppState::Game), spawn_ui)
+            .add_systems(
+                Update,
+                (
+                    update_available_items_ui,
+                    update_help_text,
+                    update_level_header_text,
+                )
+                    .run_if(in_state(AppState::Game)),
+            );
     }
 }
 
@@ -31,6 +36,60 @@ pub struct HelpText;
 
 #[derive(Component)]
 pub struct CurrentLevelText;
+
+#[derive(Component)]
+pub struct MenuItem;
+
+fn spawn_menu_ui(mut commands: Commands) {
+    let text_style = TextStyle {
+        font_size: 18.,
+        color: Color::GRAY,
+        ..default()
+    };
+
+    let mut header_text_style = text_style.clone();
+    header_text_style.font_size = 48.;
+    header_text_style.color = Color::WHITE;
+
+    commands
+        .spawn(NodeBundle {
+            style: Style {
+                flex_direction: FlexDirection::Column,
+                width: Val::Percent(100.),
+                height: Val::Percent(100.),
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+                padding: UiRect::all(Val::Px(20.)),
+                ..default()
+            },
+            ..default()
+        })
+        .with_children(|parent| {
+            parent.spawn((
+                TextBundle::from_section("Nercomatcher", header_text_style),
+                PieceTypeCounter(PieceType::Triangle),
+                MenuItem,
+            ));
+            parent.spawn(NodeBundle {
+                style: Style {
+                    padding: UiRect::all(Val::Px(70.)),
+                    ..default()
+                }, ..default()
+            }).with_children(|parent| {
+                parent.spawn((
+                    TextBundle::from_section("A puzzle match 3 game made in about a day for Ludum Dare 55. Summon creatures to build up combinations of three or more human souls (red pieces), harvesting them for your own use.\n\nPress [space] to start.", text_style),
+                    PieceTypeCounter(PieceType::Triangle),
+                    MenuItem,
+                ));
+            });
+        });
+}
+
+fn despawn_menu_ui(mut commands: Commands, menu_items: Query<Entity, With<MenuItem>>) {
+    for item in menu_items.iter() {
+        commands.entity(item).despawn();
+    }
+}
 
 fn spawn_ui(mut commands: Commands) {
     let text_style = TextStyle {
@@ -172,7 +231,7 @@ fn update_help_text(
         text.sections[0].value = if state.is_level_over() {
             String::from("YOU WIN!\n Hit 'r' to start again")
         } else {
-            "'s' to change summoned shape\n(or right click)\n\n'r' to reset level\n\nMatch 3 in a row to destroy\n\nSummon next to green pieces only\n\nMatch red pieces to harvest souls".to_owned()
+            "Match 3 in a row to harvest\n\nHarvest all the red souls\n\nYou can only harvest next to\na green soul\n\nPress 's' to change summoned creature\n(or right click)\n\nPress 'r' to reset the level".to_owned()
         };
     }
 }

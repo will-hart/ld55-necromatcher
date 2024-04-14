@@ -18,6 +18,7 @@ use crate::{
         COLS, GRID_SIZE, ROWS,
     },
     input::{CursorWorldCoords, DisableInput},
+    AppState,
 };
 
 use self::{
@@ -43,7 +44,8 @@ impl Plugin for GraphicsPlugin {
                 despawn_system,
                 hover_state::update_animations,
                 hover_state::update_hover_state,
-            ),
+            )
+                .run_if(in_state(AppState::Game)),
         );
     }
 }

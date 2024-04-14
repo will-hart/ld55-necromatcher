@@ -1,6 +1,9 @@
 use bevy::{prelude::*, window::PrimaryWindow};
 
-use crate::core::{event::GameEvent, state::PlayingPiece, utils::world_to_tile, MainCamera};
+use crate::{
+    core::{event::GameEvent, state::PlayingPiece, utils::world_to_tile, MainCamera},
+    AppState,
+};
 pub struct InputPlugin;
 
 impl Plugin for InputPlugin {
@@ -8,7 +11,8 @@ impl Plugin for InputPlugin {
         app.init_resource::<CursorWorldCoords>()
             .init_resource::<DisableInput>()
             .add_systems(PreUpdate, track_cursor_position)
-            .add_systems(Update, handle_piece_type);
+            .add_systems(Update, start_game.run_if(in_state(AppState::Menu)))
+            .add_systems(Update, handle_piece_type.run_if(in_state(AppState::Game)));
     }
 }
 
@@ -67,5 +71,14 @@ pub fn handle_piece_type(
                 piece_type: playing_piece.0,
             });
         }
+    }
+}
+
+fn start_game(
+    keyboard_input: Res<ButtonInput<KeyCode>>,
+    mut next_state: ResMut<NextState<AppState>>,
+) {
+    if keyboard_input.just_pressed(KeyCode::Space) {
+        next_state.set(AppState::Game);
     }
 }

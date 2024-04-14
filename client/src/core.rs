@@ -6,6 +6,8 @@ use bevy::{
     prelude::*,
 };
 
+use crate::AppState;
+
 use self::{
     event::GameEvent,
     state::{
@@ -38,8 +40,12 @@ impl Plugin for CorePlugin {
             .init_resource::<PlayingPiece>()
             .add_event::<GameEvent>()
             .add_event::<SideEffect>()
-            .add_systems(Startup, (spawn_camera, load_level))
-            .add_systems(Update, (state_mutation, side_effect_handler));
+            .add_systems(Startup, spawn_camera)
+            .add_systems(OnEnter(AppState::Game), load_level)
+            .add_systems(
+                Update,
+                (state_mutation, side_effect_handler).run_if(in_state(AppState::Game)),
+            );
     }
 }
 
