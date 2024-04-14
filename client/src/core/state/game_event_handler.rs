@@ -109,7 +109,7 @@ impl StateEventHandler for GameState {
                     // find any matches and remove them
                     let matches = self.get_matches();
                     for matched in matches {
-                        let idx_range = match matched {
+                        let idxs_that_matched = match matched {
                             Match::Horizontal { start_idx, length } => {
                                 (start_idx..start_idx + length).collect::<Vec<_>>()
                             }
@@ -117,9 +117,10 @@ impl StateEventHandler for GameState {
                                 .map(|step| start_idx + step * COLS)
                                 .collect::<Vec<_>>(),
                         };
-                        for idx in idx_range {
+
+                        for idx in idxs_that_matched {
                             if idx == placed_idx {
-                                // replace the first element
+                                // replace the first element with a spawn+despawn
                                 side_effects[0] = SideEffect::SpawnAtTile {
                                     idx: placed_idx,
                                     piece_type: *piece_type,
@@ -132,6 +133,16 @@ impl StateEventHandler for GameState {
                                     idx,
                                     delay: DEFAULT_DESPAWN_DELAY,
                                 });
+                            }
+
+                            // if we removed a red element, add it to capacity
+                            match self.tiles[idx].piece {
+                                Piece::Player1(pt) => match pt {
+                                    PieceType::Square => self.num_squares += 1,
+                                    PieceType::Circle => self.num_circles += 1,
+                                    PieceType::Triangle => self.num_triangles += 1,
+                                },
+                                _ => {}
                             }
 
                             self.tiles[idx].piece = Piece::Empty;
