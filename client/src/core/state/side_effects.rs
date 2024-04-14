@@ -1,7 +1,10 @@
 use bevy::prelude::*;
 
 use crate::{
-    core::state::game_event_handler::DEFAULT_DESPAWN_DELAY,
+    core::{
+        event::GameEvent,
+        state::{game_event_handler::DEFAULT_DESPAWN_DELAY, level_loader::NUM_LEVELS},
+    },
     graphics::{
         hover_state::{AnimationState, DEFAULT_ANIMATION_SPEED},
         piece_visualisation::{DespawnItem, GamePieceVisualisation},
@@ -25,12 +28,13 @@ pub enum SideEffect {
     /// Destroy all visual tiles and respawn them
     FullRespawnTiles,
     /// The game is over
-    GameOver { player_won: bool },
+    GameOver { load_another: bool },
 }
 
 pub fn side_effect_handler(
     mut commands: Commands,
     mut events: EventReader<SideEffect>,
+    mut game_events: EventWriter<GameEvent>,
     time: Res<Time>,
     state: Res<GameState>,
     piece_query: Query<(Entity, &GamePieceVisualisation)>,
@@ -89,8 +93,12 @@ pub fn side_effect_handler(
                     }
                 }
             }
-            SideEffect::GameOver { player_won } => {
-                warn!("Did the player win? {player_won}, maybe do something about this?")
+            SideEffect::GameOver { load_another } => {
+                if *load_another && state.current_level < NUM_LEVELS {
+                    game_events.send(GameEvent::NextLevel);
+                } else {
+                    warn!("I think thats game over, probably should implement something");
+                }
             }
         }
     }

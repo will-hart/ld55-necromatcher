@@ -18,7 +18,11 @@ use crate::core::{
     COLS,
 };
 
-use super::{level_loader::StateLevelLoader, side_effects::SideEffect, GameState};
+use super::{
+    level_loader::{StateLevelLoader, NUM_LEVELS},
+    side_effects::SideEffect,
+    GameState,
+};
 
 pub const DEFAULT_DESPAWN_DELAY: f32 = 0.5;
 
@@ -61,8 +65,15 @@ impl StateEventHandler for GameState {
                 }
             }
             GameEvent::LoadLevel { level_id } => {
-                if *level_id >= GameState::LEVELS.len() {
+                if *level_id >= NUM_LEVELS {
                     bail!("Unable to load level - {level_id} is not a valid level ID");
+                }
+
+                Ok(())
+            }
+            GameEvent::NextLevel => {
+                if (self.current_level + 1) >= NUM_LEVELS {
+                    bail!("Unable to load next level - already at the last level");
                 }
 
                 Ok(())
@@ -149,21 +160,35 @@ impl StateEventHandler for GameState {
                         }
                     }
 
-                    if self.is_game_over() {
+                    self.events.push(game_event);
+
+                    if self.is_level_over() {
                         warn!("Game over man");
-                        side_effects.push(SideEffect::GameOver { player_won: true });
+                        side_effects.push(SideEffect::GameOver {
+                            load_another: self.current_level + 1 < NUM_LEVELS,
+                        });
                     }
 
-                    self.events.push(game_event);
                     Ok(side_effects)
                 }
                 GameEvent::LoadLevel { level_id } => {
                     self.load_level(*level_id); // note this clears out events
+                    self.current_level = *level_id;
+                    self.events.push(game_event);
+                    Ok(vec![SideEffect::FullRespawnTiles])
+                }
+                GameEvent::NextLevel => {
+                    self.load_level(self.current_level + 1);
+                    self.current_level += 1;
                     self.events.push(game_event);
                     Ok(vec![SideEffect::FullRespawnTiles])
                 }
                 GameEvent::Reset => {
+                    // clear existing
+                    self.events.clear();
+
                     self.load_level(0);
+                    self.current_level = 0;
                     self.events.push(game_event);
                     Ok(vec![SideEffect::FullRespawnTiles])
                 }

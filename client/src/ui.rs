@@ -11,7 +11,11 @@ impl Plugin for UiPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, spawn_ui).add_systems(
             Update,
-            (update_available_items_ui, update_red_pieces_left_ui),
+            (
+                update_available_items_ui,
+                update_red_pieces_left_ui,
+                update_level_header_text,
+            ),
         );
     }
 }
@@ -27,6 +31,9 @@ pub struct GameUi;
 
 #[derive(Component)]
 pub struct HelpText;
+
+#[derive(Component)]
+pub struct CurrentLevelText;
 
 fn spawn_ui(mut commands: Commands) {
     let text_style = TextStyle {
@@ -86,6 +93,29 @@ fn spawn_ui(mut commands: Commands) {
         GameUi,
         RemainingRedCells,
     ));
+
+    let mut header_text_style = text_style.clone();
+    header_text_style.font_size = 24.;
+
+    commands.spawn((
+        TextBundle::from_section("Level 1", header_text_style).with_style(Style {
+            position_type: PositionType::Absolute,
+            top: Val::Px(5.),
+            left: Val::Px(5.),
+            ..default()
+        }),
+        GameUi,
+        CurrentLevelText,
+    ));
+}
+
+fn update_level_header_text(
+    state: Res<GameState>,
+    mut header_text: Query<&mut Text, With<CurrentLevelText>>,
+) {
+    for mut header in header_text.iter_mut() {
+        header.sections[0].value = format!("Level {}", state.get_current_level());
+    }
 }
 
 fn update_available_items_ui(
@@ -109,7 +139,7 @@ fn update_red_pieces_left_ui(
 ) {
     // TODO separate out help text from remaining souls
     for mut text in pieces.iter_mut() {
-        text.sections[0].value = if state.is_game_over() {
+        text.sections[0].value = if state.is_level_over() {
             String::from("YOU WIN!\n Hit 'r' to reset")
         } else {
             format!(

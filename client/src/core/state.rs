@@ -64,6 +64,8 @@ pub struct GameState {
     pub num_squares: usize,
     pub num_circles: usize,
 
+    current_level: usize,
+
     rng: ChaCha20Rng,
     events: Vec<GameEvent>,
 }
@@ -86,6 +88,7 @@ impl Default for GameState {
             rng: ChaCha20Rng::seed_from_u64(seed),
             events: vec![event],
             tiles,
+            current_level: 0,
             num_triangles: 0,
             num_squares: 0,
             num_circles: 0,
@@ -148,7 +151,7 @@ impl GameState {
     }
 
     /// Returns true if all red cells are defeated
-    pub fn is_game_over(&self) -> bool {
+    pub fn is_level_over(&self) -> bool {
         !self.tiles.iter().any(|t| match t.piece {
             Piece::Player1(_) => true,
             _ => false,
@@ -292,6 +295,11 @@ impl GameState {
     /// Gets any three in a row matches.
     pub fn get_matches(&self) -> Vec<Match> {
         [self._do_matching(true), self._do_matching(false)].concat()
+    }
+
+    /// Gets the current level
+    pub fn get_current_level(&self) -> usize {
+        self.current_level + 1
     }
 }
 

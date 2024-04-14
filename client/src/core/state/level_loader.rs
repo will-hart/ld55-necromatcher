@@ -8,8 +8,13 @@ pub trait StateLevelLoader {
     fn load_level(&mut self, level_id: usize);
 }
 
+pub const NUM_LEVELS: usize = 2;
+
 impl GameState {
-    pub const LEVELS: [&'static str; 1] = [include_str!("../../../../levels/level1.txt")];
+    pub const LEVELS: [&'static str; NUM_LEVELS] = [
+        include_str!("../../../../levels/level1.txt"),
+        include_str!("../../../../levels/level2.txt"),
+    ];
 }
 
 impl StateLevelLoader for GameState {
@@ -20,8 +25,6 @@ impl StateLevelLoader for GameState {
         }
         let ld = parse_level_file(Self::LEVELS[level_id]);
 
-        // clear existing
-        self.events.clear();
         let _ = self.apply_event(GameEvent::SeedRng { seed: ld.seed });
 
         // update with new level data

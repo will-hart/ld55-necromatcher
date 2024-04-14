@@ -14,6 +14,9 @@ pub enum GameEvent {
     /// Loads a level from text file
     LoadLevel { level_id: usize },
 
+    /// Move to the next level
+    NextLevel,
+
     /// A player places a piece on a map
     PlacePlayerPiece {
         x: usize,

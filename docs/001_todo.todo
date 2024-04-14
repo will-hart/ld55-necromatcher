@@ -5,11 +5,11 @@ Core functionality for LD:
   ✔ Loading level configuration from file @done(24-04-14 01:08)
   ✔ include seed in level @done(24-04-14 13:32)
   ✔ disable input while side effects are processing @done(24-04-14 13:37)
-  - store level on state and increment when each level is complete
-  - at least 4 levels
+  ✔ store level on state and increment when each level is complete @done(24-04-14 15:25)
   - Game over state - after all levels are done
   - restart from game over state back to level 1
   - enemy summon side effects
+  - at least 4 levels
   some basic sound effects:
     - hit on place
     - ping on despawn
