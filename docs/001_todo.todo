@@ -13,6 +13,7 @@ Core functionality for LD:
   some basic sound effects:
     ✔ hit on place @done(24-04-14 16:30)
     ✔ ping on despawn @done(24-04-14 16:30)
+    ✔ Level complete @done(24-04-14 16:58)
     - rawr on enemy summon
   - CI + push to itch
   - LD page
