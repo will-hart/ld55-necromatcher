@@ -130,6 +130,7 @@ fn update_level_header_text(
 
 fn update_available_items_ui(
     state: Res<GameState>,
+    current_piece: Res<PlayingPiece>,
     mut pieces: Query<(&mut Text, &PieceTypeCounter), With<GameUi>>,
 ) {
     for (mut text, piece) in pieces.iter_mut() {
@@ -140,6 +141,11 @@ fn update_available_items_ui(
         };
 
         text.sections[0].value = format!("{value} remaining");
+        text.sections[0].style.color = if piece.0 == current_piece.0 {
+            Color::WHITE
+        } else {
+            Color::DARK_GRAY
+        };
     }
 }
 
