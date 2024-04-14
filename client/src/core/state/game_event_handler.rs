@@ -13,7 +13,7 @@ use std::{println as info, println as warn};
 
 use crate::core::{
     event::GameEvent,
-    state::{Match, Piece},
+    state::{Match, Piece, PieceType},
     utils::tile_to_idx,
     COLS,
 };
@@ -47,11 +47,13 @@ impl StateEventHandler for GameState {
     fn validate_event(&self, game_event: &mut GameEvent) -> anyhow::Result<()> {
         match game_event {
             GameEvent::SeedRng { seed: _seed } => Ok(()),
-            GameEvent::PlacePlayerPiece {
-                x,
-                y,
-                piece_type: _,
-            } => {
+            GameEvent::PlacePlayerPiece { x, y, piece_type } => {
+                let has_capacity = self.has_capacity(*piece_type);
+
+                if !has_capacity {
+                    bail!("Unable to place piece - not enough pieces to place");
+                }
+
                 if self.is_valid_placement_position(*x, *y) {
                     Ok(())
                 } else {
@@ -65,6 +67,7 @@ impl StateEventHandler for GameState {
 
                 Ok(())
             }
+            GameEvent::Reset => Ok(()),
         }
     }
 
@@ -80,6 +83,20 @@ impl StateEventHandler for GameState {
                 GameEvent::PlacePlayerPiece { x, y, piece_type } => {
                     info!("Adding player piece");
 
+                    // remove the required piece from the player state
+                    match piece_type {
+                        PieceType::Square => {
+                            self.num_squares -= 1;
+                        }
+                        PieceType::Circle => {
+                            self.num_circles -= 1;
+                        }
+                        PieceType::Triangle => {
+                            self.num_triangles -= 1;
+                        }
+                    }
+
+                    // place the piece
                     let placed_idx = tile_to_idx(*x, *y);
                     self.tiles[placed_idx].piece = Piece::Player0(*piece_type);
                     let mut side_effects = vec![SideEffect::SpawnAtTile {
@@ -89,6 +106,7 @@ impl StateEventHandler for GameState {
                         also_destroy: false,
                     }];
 
+                    // find any matches and remove them
                     let matches = self.get_matches();
                     for matched in matches {
                         let idx_range = match matched {
@@ -130,6 +148,11 @@ impl StateEventHandler for GameState {
                 }
                 GameEvent::LoadLevel { level_id } => {
                     self.load_level(*level_id);
+                    self.events.push(game_event);
+                    Ok(vec![SideEffect::FullRespawnTiles])
+                }
+                GameEvent::Reset => {
+                    self.load_level(0);
                     self.events.push(game_event);
                     Ok(vec![SideEffect::FullRespawnTiles])
                 }

@@ -94,6 +94,15 @@ impl Default for GameState {
 }
 
 impl GameState {
+    /// Returns true if a piece of the given type can be placed
+    pub fn has_capacity(&self, piece_type: PieceType) -> bool {
+        (match piece_type {
+            PieceType::Square => self.num_squares,
+            PieceType::Circle => self.num_circles,
+            PieceType::Triangle => self.num_triangles,
+        }) > 0
+    }
+
     /// Returns true if the x/y position passed is a valid location to place a player piece.
     ///
     /// A valid piece must meet these conditions:
@@ -127,6 +136,18 @@ impl GameState {
         selected_tile_exists && !selected_tile_is_occupied && neighbour_contains_player_piece
     }
 
+    /// Counts the number of red cells in the map
+    pub fn count_red_cells(&self) -> usize {
+        self.tiles
+            .iter()
+            .filter(|t| match t.piece {
+                Piece::Player1(_) => true,
+                _ => false,
+            })
+            .count()
+    }
+
+    /// Returns true if all red cells are defeated
     pub fn is_game_over(&self) -> bool {
         !self.tiles.iter().any(|t| match t.piece {
             Piece::Player1(_) => true,

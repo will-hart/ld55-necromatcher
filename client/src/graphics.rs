@@ -59,6 +59,7 @@ fn draw_grid(
 
     let (xsel, ysel) = world_to_tile(cursor_coords.0).unwrap_or((usize::MAX, usize::MAX));
     let is_valid_placement_position = state.is_valid_placement_position(xsel, ysel);
+    let has_capacity = state.has_capacity(current_piece.0);
 
     for x in 0..COLS {
         for y in 0..ROWS {
@@ -66,7 +67,7 @@ fn draw_grid(
             painter.translate(Vec3::new(coords.min.x + 1., coords.min.y + 1., 0.));
 
             if xsel == x && ysel == y {
-                painter.color = if is_valid_placement_position {
+                painter.color = if is_valid_placement_position && has_capacity {
                     DEFAULT_GRID_HOVER_BORDER_VALID
                 } else {
                     DEFAULT_GRID_HOVER_BORDER_INVALID
@@ -112,7 +113,7 @@ fn draw_current_piece(
         let window = window_query.single();
         painter.translate(Vec3::new(
             -0.5 * window.width() + 2. * SHAPE_SIZE,
-            -0.5 * window.height() + 2. * SHAPE_SIZE + idx as f32 * 2.5 * SHAPE_SIZE,
+            -0.5 * window.height() + 2. * SHAPE_SIZE + idx as f32 * 3. * SHAPE_SIZE,
             0.0,
         ));
 

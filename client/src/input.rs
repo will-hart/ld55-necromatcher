@@ -41,8 +41,12 @@ pub fn handle_piece_type(
     mut playing_piece: ResMut<PlayingPiece>,
     mut state_events: EventWriter<GameEvent>,
 ) {
-    if buttons.just_pressed(MouseButton::Right) || keyboard_input.just_pressed(KeyCode::Tab) {
+    if buttons.just_pressed(MouseButton::Right) || keyboard_input.just_pressed(KeyCode::KeyS) {
         playing_piece.0 = playing_piece.0.toggle();
+    }
+
+    if keyboard_input.just_pressed(KeyCode::KeyR) {
+        state_events.send(GameEvent::Reset);
     }
 
     if buttons.just_pressed(MouseButton::Left) {

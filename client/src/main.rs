@@ -1,10 +1,11 @@
 use bevy::{log::info, prelude::App, DefaultPlugins};
 
-use crate::{core::CorePlugin, graphics::GraphicsPlugin, input::InputPlugin};
+use crate::{core::CorePlugin, graphics::GraphicsPlugin, input::InputPlugin, ui::UiPlugin};
 
 mod core;
 mod graphics;
 mod input;
+mod ui;
 
 // Use of a mod or pub mod is not actually necessary.
 pub mod built_info {
@@ -14,8 +15,12 @@ pub mod built_info {
 
 fn main() {
     let mut app = App::new();
-    app.add_plugins(DefaultPlugins)
-        .add_plugins((CorePlugin, InputPlugin, GraphicsPlugin));
+    app.add_plugins(DefaultPlugins).add_plugins((
+        CorePlugin,
+        InputPlugin,
+        GraphicsPlugin,
+        UiPlugin,
+    ));
 
     info!(
         "Starting client application - v{} - SHA: {}",

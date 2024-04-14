@@ -5,6 +5,9 @@ use super::state::PieceType;
 /// A game event that
 #[derive(Event, Clone, Copy, Debug)]
 pub enum GameEvent {
+    /// Resets the game
+    Reset,
+
     /// Seeds the rng so we can have repeatable games
     SeedRng { seed: u64 },
 

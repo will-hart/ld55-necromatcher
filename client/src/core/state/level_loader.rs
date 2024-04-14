@@ -1,4 +1,4 @@
-use bevy::log::warn;
+use bevy::log::{info, warn};
 
 use super::{GameState, Piece, PieceType};
 
@@ -26,6 +26,8 @@ impl StateLevelLoader for GameState {
         for (idx, piece) in pieces.into_iter().enumerate() {
             self.tiles[idx].piece = piece;
         }
+
+        info!("Loaded level, {num_tris}, {num_squares}, {num_circles}")
     }
 }
 
@@ -64,5 +66,5 @@ fn parse_level_file(data: &str) -> ((usize, usize, usize), Vec<Piece>) {
         .collect::<Vec<_>>();
     debug_assert_eq!(numbers.len(), 3);
 
-    ((0, 0, 0), pieces)
+    ((numbers[0], numbers[1], numbers[2]), pieces)
 }
