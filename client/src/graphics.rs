@@ -55,7 +55,7 @@ fn draw_grid(
     let pos = painter.transform.clone();
 
     painter.thickness = 0.5;
-    painter.hollow = true;
+    painter.hollow = false;
 
     let (xsel, ysel) = world_to_tile(cursor_coords.0).unwrap_or((usize::MAX, usize::MAX));
     let is_valid_placement_position = state.is_valid_placement_position(xsel, ysel);
@@ -76,7 +76,9 @@ fn draw_grid(
                 if is_valid_placement_position {
                     let col = painter.color;
                     painter.color = DEFAULT_GRID_BORDER;
+                    painter.translate(Vec3::new(0.0, 0.0, 0.5));
                     draw_single_piece(&mut painter, &current_piece.0, 1.0);
+                    painter.translate(Vec3::new(0.0, 0.0, -0.5));
                     painter.color = col;
                 }
             } else {

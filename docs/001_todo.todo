@@ -1,10 +1,22 @@
-Core functionality:
+Core functionality for LD:
   ✔ Draw grid @done(24-04-13 11:46)
   ✔ Create a state container for the current map state @done(24-04-13 16:09)
   ✔ Setup events that can be used to update the state @done(24-04-13 16:09)
   ✔ Loading level configuration from file @done(24-04-14 01:08)
-  - Game over state
-  - Handling levels
+  - include seed in level
+  - disable input while side effects are processing
+  - store level on state and increment when each level is complete
+  - at least 4 levels
+  - Game over state - after all levels are done
+  - restart from game over state back to level 1
+  - enemy summon side effects
+  some basic sound effects:
+    - hit on place
+    - ping on despawn
+    - rawr on enemy summon
+  - CI + push to itch
+  - LD page
+  - Come up with a name
   
   Handle placing pieces:
     ✔ Show valid placement locations @done(24-04-13 16:09)
@@ -18,9 +30,9 @@ Core functionality:
 
 Infra:
   ✔ CI workflows  (untested) @done(24-04-13 12:15)
-  - Come up with a name
 
 Nice to have:
   - Chained animation targets, so we can do e.g. pop in and then out
   - Animation easing
   - particles on removal
+  - actual sprites instead of shapes

@@ -25,6 +25,9 @@ pub struct RemainingRedCells;
 #[derive(Component)]
 pub struct GameUi;
 
+#[derive(Component)]
+pub struct HelpText;
+
 fn spawn_ui(mut commands: Commands) {
     let text_style = TextStyle {
         font_size: 18.,
@@ -63,19 +66,20 @@ fn spawn_ui(mut commands: Commands) {
     ));
 
     commands.spawn((
-        TextBundle::from_section("Available Summons:", text_style.clone()).with_style(Style {
+        TextBundle::from_section("Available Souls:", text_style.clone()).with_style(Style {
             position_type: PositionType::Absolute,
             bottom: Val::Px(10.5 * SHAPE_SIZE),
             left: Val::Px(SHAPE_SIZE),
             ..default()
         }),
         GameUi,
+        HelpText,
     ));
 
     commands.spawn((
         TextBundle::from_section(" ", text_style.clone()).with_style(Style {
             position_type: PositionType::Absolute,
-            bottom: Val::Px(14. * SHAPE_SIZE),
+            bottom: Val::Px(15. * SHAPE_SIZE),
             left: Val::Px(SHAPE_SIZE),
             ..default()
         }),
@@ -103,12 +107,13 @@ fn update_red_pieces_left_ui(
     state: Res<GameState>,
     mut pieces: Query<&mut Text, (With<RemainingRedCells>, With<GameUi>)>,
 ) {
+    // TODO separate out help text from remaining souls
     for mut text in pieces.iter_mut() {
         text.sections[0].value = if state.is_game_over() {
             String::from("YOU WIN!\n Hit 'r' to reset")
         } else {
             format!(
-            "Destroy {} more red enemies\n's' to change summoned shape\n'r' to reset level\n\nMatch 3 in a row to destroy\nSummon next to green pieces\nMatch red pieces to gain summons",
+            "'s' to change summoned shape\n(or right click)\n\n'r' to reset level\n\nMatch 3 in a row to destroy\n\nSummon next to green pieces only\n\nMatch red pieces to gain souls\n\nHarvest {} more red souls",
             state.count_red_cells()
         )
         };
