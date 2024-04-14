@@ -186,8 +186,8 @@ impl StateEventHandler for GameState {
                     // if we're at the last level, go back to level 1, otherwise just reset
                     self.events.push(game_event);
 
-                    if self.current_level + 1 == NUM_LEVELS {
-                        // clear existing
+                    if self.current_level + 1 > NUM_LEVELS {
+                        // we're going back to the start
                         self.events.clear();
                         self.load_level(0);
                         self.current_level = 0;

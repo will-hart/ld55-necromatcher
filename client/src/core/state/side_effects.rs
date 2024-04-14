@@ -45,9 +45,9 @@ pub fn side_effect_handler(
     mut events: EventReader<SideEffect>,
     mut game_events: EventWriter<GameEvent>,
     time: Res<Time>,
-    state: Res<GameState>,
     audio: Res<Audio>,
     audio_files: Res<AudioFiles>,
+    mut state: ResMut<GameState>,
     game_overs: Query<Entity, With<GameOverDude>>,
     piece_query: Query<(Entity, &GamePieceVisualisation)>,
     mut animations: Query<&mut AnimationState, With<GamePieceVisualisation>>,
@@ -118,6 +118,7 @@ pub fn side_effect_handler(
                 } else {
                     warn!("I think thats game over, probably should implement something");
                     commands.spawn(GameOverDude);
+                    state.current_level += 1; // increment here so we know reset should go back to level 1
 
                     for (entity, _) in piece_query.iter() {
                         commands.entity(entity).despawn();
