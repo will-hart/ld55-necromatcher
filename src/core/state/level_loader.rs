@@ -8,10 +8,11 @@ pub trait StateLevelLoader {
     fn load_level(&mut self, level_id: usize);
 }
 
-pub const NUM_LEVELS: usize = 4;
+pub const NUM_LEVELS: usize = 5;
 
 impl GameState {
     pub const LEVELS: [&'static str; NUM_LEVELS] = [
+        include_str!("../../../levels/tutorial.txt"),
         include_str!("../../../levels/level1.txt"),
         include_str!("../../../levels/level2.txt"),
         include_str!("../../../levels/level3.txt"),
@@ -72,10 +73,10 @@ fn parse_level_file(data: &str) -> LevelData {
         .flat_map(|line| {
             line.split(',')
                 .map(|i| match i {
-                    "0" => Piece::Empty,
-                    "1" => Piece::Player0(PieceType::Hound),
-                    "2" => Piece::Player0(PieceType::Swordsman),
-                    "3" => Piece::Player0(PieceType::Bowman),
+                    "0" | "00" => Piece::Empty,
+                    "1" | "01" => Piece::Player0(PieceType::Hound),
+                    "2" | "02" => Piece::Player0(PieceType::Swordsman),
+                    "3" | "03" => Piece::Player0(PieceType::Bowman),
                     "11" => Piece::Player1(PieceType::Hound),
                     "12" => Piece::Player1(PieceType::Swordsman),
                     "13" => Piece::Player1(PieceType::Bowman),

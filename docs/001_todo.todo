@@ -12,7 +12,7 @@ Core functionality for LD:
     This is a tricky one. I played around with a few idea but they didn't really work.
     Having random spawns made making levels difficult. I think for now leaning into it
     as a "puzzle match 3" works, however I think that weakens the theme a little.
-  - at least 4 levels
+  ✔ at least 4 levels @done(24-04-15 00:11)
 
   some basic sound effects:
     ✔ hit on place @done(24-04-14 16:30)

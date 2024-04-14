@@ -1,11 +1,11 @@
-The first lot of Pleasant Vale peasants seem to have been fought off, but now you're hearing rumblings on the wind that there is another horde of swordsmen waiting in the graveyard near your home. Its going to be pretty hard to rescue the newly dead from their slumber with that horde there. Best clear them out I suppose.
-2113462325346
-4,2,1
-0,0,0,0,0,0,0,11
-0,0,0,0,0,0,12,12
-99,0,99,12,99,0,99,0
-0,0,0,0,0,0,0,0
-99,0,99,0,99,0,99,0
-0,0,0,0,0,0,0,0
-0,1,3,3,0,0,0,0
-0,2,3,0,0,0,0,0
+Hmmm... they seem pretty persistent. Was it the undead sheep that has the Pleasant Vale villagers so riled up? Either way, just as a precautionary measure it might be worth heading to town to see what they're up to. Ah look! The lumber camp up ahead seems busy, shall we see if they like puppies?
+14623451346136
+1,2,1
+00,00,01,00,00,01,00,00
+00,99,99,00,00,99,99,00
+01,99,00,00,00,12,99,01
+00,11,00,11,12,12,00,00
+00,00,00,00,00,00,00,00
+01,99,00,13,12,00,99,01
+00,99,99,13,00,99,99,00
+00,00,01,00,11,01,00,00
