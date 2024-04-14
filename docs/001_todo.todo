@@ -4,7 +4,7 @@ Core functionality for LD:
   ✔ Setup events that can be used to update the state @done(24-04-13 16:09)
   ✔ Loading level configuration from file @done(24-04-14 01:08)
   ✔ include seed in level @done(24-04-14 13:32)
-  - disable input while side effects are processing
+  ✔ disable input while side effects are processing @done(24-04-14 13:37)
   - store level on state and increment when each level is complete
   - at least 4 levels
   - Game over state - after all levels are done

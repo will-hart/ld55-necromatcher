@@ -6,6 +6,7 @@ pub struct InputPlugin;
 impl Plugin for InputPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<CursorWorldCoords>()
+            .init_resource::<DisableInput>()
             .add_systems(PreUpdate, track_cursor_position)
             .add_systems(Update, handle_piece_type);
     }
@@ -14,6 +15,9 @@ impl Plugin for InputPlugin {
 /// We will store the world position of the mouse cursor here.
 #[derive(Resource, Default)]
 pub struct CursorWorldCoords(pub Vec2);
+
+#[derive(Resource, Default)]
+pub struct DisableInput(pub bool);
 
 fn track_cursor_position(
     mut cursor_coords: ResMut<CursorWorldCoords>,
@@ -38,6 +42,7 @@ pub fn handle_piece_type(
     cursor_coords: Res<CursorWorldCoords>,
     buttons: Res<ButtonInput<MouseButton>>,
     keyboard_input: Res<ButtonInput<KeyCode>>,
+    disable_input: Res<DisableInput>,
     mut playing_piece: ResMut<PlayingPiece>,
     mut state_events: EventWriter<GameEvent>,
 ) {
@@ -49,18 +54,20 @@ pub fn handle_piece_type(
         state_events.send(GameEvent::Reset);
     }
 
-    if buttons.just_pressed(MouseButton::Left) {
-        let (x, y) = world_to_tile(cursor_coords.0).unwrap_or((usize::MAX, usize::MAX));
-        if x < usize::MAX && y < usize::MAX {
-            info!(
-                "Requested piece placement at {x}, {y} - {:?}",
-                playing_piece.0
-            );
-            state_events.send(GameEvent::PlacePlayerPiece {
-                x,
-                y,
-                piece_type: playing_piece.0,
-            });
+    if !disable_input.0 {
+        if buttons.just_pressed(MouseButton::Left) {
+            let (x, y) = world_to_tile(cursor_coords.0).unwrap_or((usize::MAX, usize::MAX));
+            if x < usize::MAX && y < usize::MAX {
+                info!(
+                    "Requested piece placement at {x}, {y} - {:?}",
+                    playing_piece.0
+                );
+                state_events.send(GameEvent::PlacePlayerPiece {
+                    x,
+                    y,
+                    piece_type: playing_piece.0,
+                });
+            }
         }
     }
 }

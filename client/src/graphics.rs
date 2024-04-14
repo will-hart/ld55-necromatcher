@@ -15,7 +15,7 @@ use crate::{
         utils::{idx_to_tile, tile_coords, world_to_tile},
         COLS, GRID_SIZE, ROWS,
     },
-    input::CursorWorldCoords,
+    input::{CursorWorldCoords, DisableInput},
 };
 
 use self::{
@@ -50,6 +50,7 @@ fn draw_grid(
     cursor_coords: Res<CursorWorldCoords>,
     current_piece: Res<PlayingPiece>,
     state: Res<GameState>,
+    disable_input: Res<DisableInput>,
     mut painter: ShapePainter,
 ) {
     let pos = painter.transform.clone();
@@ -66,7 +67,7 @@ fn draw_grid(
             let coords = tile_coords(x, y);
             painter.translate(Vec3::new(coords.min.x + 1., coords.min.y + 1., 0.));
 
-            if xsel == x && ysel == y {
+            if !disable_input.0 && xsel == x && ysel == y {
                 painter.color = if is_valid_placement_position && has_capacity {
                     DEFAULT_GRID_HOVER_BORDER_VALID
                 } else {
@@ -172,8 +173,11 @@ fn draw_single_piece(painter: &mut ShapePainter, piece_type: &PieceType, scale: 
 fn despawn_system(
     mut commands: Commands,
     time: Res<Time>,
+    mut disable_input: ResMut<DisableInput>,
     despawn_items: Query<(Entity, &DespawnItem)>,
 ) {
+    disable_input.0 = !despawn_items.is_empty();
+
     for (entity, item) in despawn_items.iter() {
         if item.despawn_time < time.elapsed_seconds() {
             commands.entity(entity).despawn();
