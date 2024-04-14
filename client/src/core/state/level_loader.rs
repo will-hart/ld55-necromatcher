@@ -71,12 +71,12 @@ fn parse_level_file(data: &str) -> LevelData {
             line.split(',')
                 .map(|i| match i {
                     "0" => Piece::Empty,
-                    "1" => Piece::Player0(PieceType::Circle),
-                    "2" => Piece::Player0(PieceType::Square),
-                    "3" => Piece::Player0(PieceType::Triangle),
-                    "11" => Piece::Player1(PieceType::Circle),
-                    "12" => Piece::Player1(PieceType::Square),
-                    "13" => Piece::Player1(PieceType::Triangle),
+                    "1" => Piece::Player0(PieceType::Hound),
+                    "2" => Piece::Player0(PieceType::Swordsman),
+                    "3" => Piece::Player0(PieceType::Bowman),
+                    "11" => Piece::Player1(PieceType::Hound),
+                    "12" => Piece::Player1(PieceType::Swordsman),
+                    "13" => Piece::Player1(PieceType::Bowman),
                     "99" => Piece::Obstacle(PieceType::Wall),
                     v => {
                         panic!(

@@ -12,7 +12,7 @@ use self::{
     event::GameEvent,
     state::{
         game_event_handler::state_mutation,
-        side_effects::{side_effect_handler, SideEffect},
+        side_effects::{side_effect_handler, spawn_sprites_for_visualisations, SideEffect},
         GameState, PlayingPiece,
     },
 };
@@ -44,7 +44,11 @@ impl Plugin for CorePlugin {
             .add_systems(OnEnter(AppState::Game), load_level)
             .add_systems(
                 Update,
-                (state_mutation, side_effect_handler).run_if(in_state(AppState::Game)),
+                (
+                    state_mutation,
+                    (side_effect_handler, spawn_sprites_for_visualisations).chain(),
+                )
+                    .run_if(in_state(AppState::Game)),
             );
     }
 }

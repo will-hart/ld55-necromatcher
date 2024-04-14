@@ -2,15 +2,15 @@ use bevy::prelude::*;
 use bevy_kira_audio::{Audio, AudioControl};
 
 use crate::{
+    animation::{AnimationIndices, AnimationTimer},
     core::{
+        colours::{PLAYER_0_COLOUR, PLAYER_1_COLOUR},
         event::GameEvent,
         state::{game_event_handler::DEFAULT_DESPAWN_DELAY, level_loader::NUM_LEVELS},
+        utils::{idx_to_tile, tile_coords},
     },
-    graphics::{
-        hover_state::{AnimationState, DEFAULT_ANIMATION_SPEED},
-        piece_visualisation::{DespawnItem, GamePieceVisualisation},
-    },
-    loaders::AudioFiles,
+    graphics::piece_visualisation::{DespawnItem, GamePieceVisualisation},
+    loaders::{AudioFiles, SpritesheetFiles},
 };
 
 use super::{GameState, Obstacle, PieceType};
@@ -39,6 +39,63 @@ pub enum SideEffect {
     RemoveGameOverCondition,
 }
 
+pub fn spawn_sprites_for_visualisations(
+    mut commands: Commands,
+    spritesheets: Res<SpritesheetFiles>,
+    mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
+    added: Query<(Entity, &GamePieceVisualisation), Added<GamePieceVisualisation>>,
+) {
+    if added.is_empty() {
+        return;
+    }
+
+    let layout = TextureAtlasLayout::from_grid(Vec2::new(32.0, 32.0), 13, 1, None, None);
+    let layout = texture_atlas_layouts.add(layout);
+
+    for (entity, vis) in added.iter() {
+        let mut first = match vis.piece_type {
+            PieceType::Swordsman => 2,
+            PieceType::Hound => 4,
+            PieceType::Bowman => 0,
+            PieceType::Wall => 12,
+        };
+
+        if !vis.is_player_owned && first < 12 {
+            first = first + 6;
+        }
+
+        let (x, y) = idx_to_tile(vis.idx);
+        let coords = tile_coords(x, y);
+
+        commands.entity(entity).insert((
+            SpriteSheetBundle {
+                texture: spritesheets.main_sheet.clone(),
+                atlas: TextureAtlas {
+                    layout: layout.clone(),
+                    index: first,
+                },
+                transform: Transform::from_translation(coords.min.extend(0.5)),
+                sprite: Sprite {
+                    color: if first == 12 {
+                        Color::WHITE
+                    } else if vis.is_player_owned {
+                        PLAYER_0_COLOUR
+                    } else {
+                        PLAYER_1_COLOUR
+                    },
+                    ..default()
+                },
+                ..default()
+            },
+            AnimationIndices {
+                first,
+                last: if first == 12 { 12 } else { first + 1 },
+            },
+            AnimationTimer(Timer::from_seconds(0.35, TimerMode::Repeating)),
+        ));
+    }
+}
+
 #[allow(clippy::too_many_arguments)]
 pub fn side_effect_handler(
     mut commands: Commands,
@@ -50,7 +107,6 @@ pub fn side_effect_handler(
     mut state: ResMut<GameState>,
     game_overs: Query<Entity, With<GameOverDude>>,
     piece_query: Query<(Entity, &GamePieceVisualisation)>,
-    mut animations: Query<&mut AnimationState, With<GamePieceVisualisation>>,
 ) {
     for side_effect in events.read() {
         info!("Handling side effect: {side_effect:?}");
@@ -83,10 +139,6 @@ pub fn side_effect_handler(
                         commands.entity(entity).insert(DespawnItem {
                             despawn_time: time.elapsed_seconds() + delay,
                         });
-
-                        if let Ok(mut anim_state) = animations.get_mut(entity) {
-                            anim_state.set_target(0.2);
-                        }
 
                         break;
                     }
@@ -164,12 +216,6 @@ fn spawn_game_piece(
     });
 
     if let Some(despawn_time) = despawn_at {
-        ent.insert((
-            DespawnItem { despawn_time },
-            // TODO: allow chained targets
-            AnimationState::new(1.0, 0.3, DEFAULT_ANIMATION_SPEED / 100.),
-        ));
-    } else {
-        ent.insert(AnimationState::default());
+        ent.insert((DespawnItem { despawn_time },));
     }
 }

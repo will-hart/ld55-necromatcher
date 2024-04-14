@@ -76,7 +76,7 @@ fn spawn_menu_ui(
         .with_children(|parent| {
             parent.spawn((
                 TextBundle::from_section("Nercomatcher", header_text_style),
-                PieceTypeCounter(PieceType::Triangle),
+                PieceTypeCounter(PieceType::Bowman),
             ));
             parent.spawn(NodeBundle {
                 style: Style {
@@ -86,7 +86,7 @@ fn spawn_menu_ui(
             }).with_children(|parent| {
                 parent.spawn((
                     TextBundle::from_section("A puzzle match 3 game made in about a day for Ludum Dare 55. Summon creatures to build up combinations of three or more human souls (red pieces), harvesting them for your own use.\n\nPress [space] to start.", text_style),
-                    PieceTypeCounter(PieceType::Triangle),
+                    PieceTypeCounter(PieceType::Bowman),
                 ));
             });
         });
@@ -159,7 +159,7 @@ fn spawn_ui(mut commands: Commands) {
             left: Val::Px(4. * SHAPE_SIZE),
             ..default()
         }),
-        PieceTypeCounter(PieceType::Triangle),
+        PieceTypeCounter(PieceType::Bowman),
         GameUi,
     ));
     commands.spawn((
@@ -169,7 +169,7 @@ fn spawn_ui(mut commands: Commands) {
             left: Val::Px(4. * SHAPE_SIZE),
             ..default()
         }),
-        PieceTypeCounter(PieceType::Circle),
+        PieceTypeCounter(PieceType::Hound),
         GameUi,
     ));
     commands.spawn((
@@ -179,7 +179,7 @@ fn spawn_ui(mut commands: Commands) {
             left: Val::Px(4. * SHAPE_SIZE),
             ..default()
         }),
-        PieceTypeCounter(PieceType::Square),
+        PieceTypeCounter(PieceType::Swordsman),
         GameUi,
     ));
 
@@ -260,9 +260,9 @@ fn update_available_items_ui(
 ) {
     for (mut text, piece) in pieces.iter_mut() {
         let value = match piece.0 {
-            PieceType::Square => state.num_squares,
-            PieceType::Circle => state.num_circles,
-            PieceType::Triangle => state.num_triangles,
+            PieceType::Swordsman => state.num_squares,
+            PieceType::Hound => state.num_circles,
+            PieceType::Bowman => state.num_triangles,
             _ => panic!(
                 "wrong piece type passed to update_available_items_ui UI - {:?}",
                 piece.0

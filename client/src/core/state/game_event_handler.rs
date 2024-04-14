@@ -96,13 +96,13 @@ impl StateEventHandler for GameState {
 
                     // remove the required piece from the player state
                     match piece_type {
-                        PieceType::Square => {
+                        PieceType::Swordsman => {
                             self.num_squares -= 1;
                         }
-                        PieceType::Circle => {
+                        PieceType::Hound => {
                             self.num_circles -= 1;
                         }
-                        PieceType::Triangle => {
+                        PieceType::Bowman => {
                             self.num_triangles -= 1;
                         }
                         PieceType::Wall => {
@@ -152,9 +152,9 @@ impl StateEventHandler for GameState {
                             // if we removed a red element, add it to capacity
                             if let Piece::Player1(pt) = self.tiles[idx].piece {
                                 match pt {
-                                    PieceType::Square => self.num_squares += 1,
-                                    PieceType::Circle => self.num_circles += 1,
-                                    PieceType::Triangle => self.num_triangles += 1,
+                                    PieceType::Swordsman => self.num_squares += 1,
+                                    PieceType::Hound => self.num_circles += 1,
+                                    PieceType::Bowman => self.num_triangles += 1,
                                     PieceType::Wall => {
                                         //nop, how is this even possible?
                                     }
