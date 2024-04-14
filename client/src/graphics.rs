@@ -98,18 +98,28 @@ fn draw_current_piece(
 
     painter.thickness = 0.5;
     painter.hollow = true;
-    painter.color = PLAYER_0_COLOUR;
 
-    let window = window_query.single();
-    painter.translate(Vec3::new(
-        -0.5 * window.width() + 2. * SHAPE_SIZE,
-        -0.5 * window.height() + 2. * SHAPE_SIZE,
-        0.0,
-    ));
+    for (idx, piece) in [PieceType::Triangle, PieceType::Circle, PieceType::Square]
+        .iter()
+        .enumerate()
+    {
+        painter.color = if *piece == current_piece.0 {
+            PLAYER_0_COLOUR
+        } else {
+            DEFAULT_GRID_HOVER_BORDER_INVALID
+        };
 
-    draw_single_piece(&mut painter, &current_piece.0, 1.0);
+        let window = window_query.single();
+        painter.translate(Vec3::new(
+            -0.5 * window.width() + 2. * SHAPE_SIZE,
+            -0.5 * window.height() + 2. * SHAPE_SIZE + idx as f32 * 2.5 * SHAPE_SIZE,
+            0.0,
+        ));
 
-    painter.transform = pos;
+        draw_single_piece(&mut painter, piece, 1.0);
+
+        painter.transform = pos;
+    }
 }
 
 fn draw_pieces(
