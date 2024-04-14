@@ -13,7 +13,7 @@ impl Plugin for UiPlugin {
             Update,
             (
                 update_available_items_ui,
-                update_red_pieces_left_ui,
+                update_help_text,
                 update_level_header_text,
             ),
         );
@@ -22,9 +22,6 @@ impl Plugin for UiPlugin {
 
 #[derive(Component)]
 pub struct PieceTypeCounter(pub PieceType);
-
-#[derive(Component)]
-pub struct RemainingRedCells;
 
 #[derive(Component)]
 pub struct GameUi;
@@ -80,7 +77,6 @@ fn spawn_ui(mut commands: Commands) {
             ..default()
         }),
         GameUi,
-        HelpText,
     ));
 
     commands.spawn((
@@ -91,14 +87,18 @@ fn spawn_ui(mut commands: Commands) {
             ..default()
         }),
         GameUi,
-        RemainingRedCells,
+        HelpText,
     ));
 
     let mut header_text_style = text_style.clone();
     header_text_style.font_size = 24.;
 
     commands.spawn((
-        TextBundle::from_section("Level 1", header_text_style).with_style(Style {
+        TextBundle::from_sections([
+            TextSection::new("Level 1", header_text_style),
+            TextSection::new("\nMatch    red tiles to win!", text_style.clone()),
+        ])
+        .with_style(Style {
             position_type: PositionType::Absolute,
             top: Val::Px(5.),
             left: Val::Px(5.),
@@ -120,6 +120,11 @@ fn update_level_header_text(
         } else {
             "Game Over!".to_owned()
         };
+
+        header.sections[1].value = format!(
+            "\nHarvest {} more red souls to win",
+            state.count_red_cells()
+        );
     }
 }
 
@@ -138,19 +143,15 @@ fn update_available_items_ui(
     }
 }
 
-fn update_red_pieces_left_ui(
+fn update_help_text(
     state: Res<GameState>,
-    mut pieces: Query<&mut Text, (With<RemainingRedCells>, With<GameUi>)>,
+    mut pieces: Query<&mut Text, (With<HelpText>, With<GameUi>)>,
 ) {
-    // TODO separate out help text from remaining souls
     for mut text in pieces.iter_mut() {
         text.sections[0].value = if state.is_level_over() {
             String::from("YOU WIN!\n Hit 'r' to reset")
         } else {
-            format!(
-            "'s' to change summoned shape\n(or right click)\n\n'r' to reset level\n\nMatch 3 in a row to destroy\n\nSummon next to green pieces only\n\nMatch red pieces to gain souls\n\nHarvest {} more red souls",
-            state.count_red_cells()
-        )
+            "'s' to change summoned shape\n(or right click)\n\n'r' to reset level\n\nMatch 3 in a row to destroy\n\nSummon next to green pieces only\n\nMatch red pieces to harvest souls".to_owned()
         };
     }
 }

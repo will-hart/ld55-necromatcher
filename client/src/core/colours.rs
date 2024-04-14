@@ -1,6 +1,6 @@
 use bevy::render::color::Color;
 
-pub const DEFAULT_GRID_BORDER: Color = Color::rgb_linear(0.02, 0.02, 0.02);
+pub const DEFAULT_GRID_BORDER: Color = Color::rgb_linear(0.01, 0.01, 0.01);
 pub const DEFAULT_GRID_HOVER_BORDER_VALID: Color = Color::rgb_linear(0.45, 1.35, 0.45);
 pub const DEFAULT_GRID_HOVER_BORDER_INVALID: Color = Color::rgb_linear(1.35, 0.45, 0.45);
 
