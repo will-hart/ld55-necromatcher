@@ -23,6 +23,8 @@ pub mod piece_visualisation;
 
 pub const SHAPE_SIZE: f32 = GRID_SIZE as f32 / 8.;
 
+pub const SPRITE_SHEET_CELLS: usize = 14;
+
 pub struct GraphicsPlugin;
 
 impl Plugin for GraphicsPlugin {
@@ -97,7 +99,8 @@ fn spawn_current_piece_icons(
     mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
     window_query: Query<&Window, With<PrimaryWindow>>,
 ) {
-    let layout = TextureAtlasLayout::from_grid(Vec2::new(32.0, 32.0), 13, 1, None, None);
+    let layout =
+        TextureAtlasLayout::from_grid(Vec2::new(32.0, 32.0), SPRITE_SHEET_CELLS, 1, None, None);
     let layout = texture_atlas_layouts.add(layout);
 
     let window = window_query.single();
@@ -158,7 +161,8 @@ pub fn spawn_hover_icon_indicator(
     spritesheets: Res<SpritesheetFiles>,
     mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
 ) {
-    let layout = TextureAtlasLayout::from_grid(Vec2::new(32.0, 32.0), 13, 1, None, None);
+    let layout =
+        TextureAtlasLayout::from_grid(Vec2::new(32.0, 32.0), SPRITE_SHEET_CELLS, 1, None, None);
     let layout = texture_atlas_layouts.add(layout);
 
     commands.spawn((

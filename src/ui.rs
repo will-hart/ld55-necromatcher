@@ -3,7 +3,7 @@ use bevy::prelude::*;
 use crate::{
     animation::{AnimationIndices, AnimationTimer},
     core::state::{side_effects::GameOverDude, GameState, PieceType, PlayingPiece},
-    graphics::SHAPE_SIZE,
+    graphics::{SHAPE_SIZE, SPRITE_SHEET_CELLS},
     loaders::SpritesheetFiles,
     AppState,
 };
@@ -91,7 +91,8 @@ fn spawn_menu_ui(
             });
         });
 
-    let layout = TextureAtlasLayout::from_grid(Vec2::new(32.0, 32.0), 13, 1, None, None);
+    let layout =
+        TextureAtlasLayout::from_grid(Vec2::new(32.0, 32.0), SPRITE_SHEET_CELLS, 1, None, None);
     let layout = texture_atlas_layouts.add(layout);
 
     commands.spawn((

@@ -9,7 +9,10 @@ use crate::{
         state::{game_event_handler::DEFAULT_DESPAWN_DELAY, level_loader::NUM_LEVELS},
         utils::{idx_to_tile, tile_coords},
     },
-    graphics::piece_visualisation::{DespawnItem, GamePieceVisualisation},
+    graphics::{
+        piece_visualisation::{DespawnItem, GamePieceVisualisation},
+        SPRITE_SHEET_CELLS,
+    },
     loaders::{AudioFiles, SpritesheetFiles},
 };
 
@@ -49,7 +52,8 @@ pub fn spawn_sprites_for_visualisations(
         return;
     }
 
-    let layout = TextureAtlasLayout::from_grid(Vec2::new(32.0, 32.0), 13, 1, None, None);
+    let layout =
+        TextureAtlasLayout::from_grid(Vec2::new(32.0, 32.0), SPRITE_SHEET_CELLS, 1, None, None);
     let layout = texture_atlas_layouts.add(layout);
 
     for (entity, vis) in added.iter() {
